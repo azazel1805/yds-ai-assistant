@@ -3,18 +3,11 @@ import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { GoogleGenAI, Type } from "@google/genai";
 
 const ALLOWED_QUESTION_TYPES_LIST = [
-    "Kelime Sorusu",
-    "Dil Bilgisi Sorusu",
-    "Cloze Test Sorusu",
-    "Cümle Tamamlama Sorusu",
-    "Çeviri Sorusu",
-    "Paragraf Sorusu",
-    "Diyalog Tamamlama Sorusu",
-    "Restatement (Yeniden Yazma) Sorusu",
-    "Paragraf Tamamlama Sorusu",
-    "Anlam Bütünlüğünü Bozan Cümle Sorusu"
+    "Kelime Sorusu", "Dil Bilgisi Sorusu", "Cloze Test Sorusu",
+    "Cümle Tamamlama Sorusu", "Çeviri Sorusu", "Paragraf Sorusu",
+    "Diyalog Tamamlama Sorusu", "Restatement (Yeniden Yazma) Sorusu",
+    "Paragraf Tamamlama Sorusu", "Anlam Bütünlüğünü Bozan Cümle Sorusu"
 ];
-const allowedQuestionTypesString = ALLOWED_QUESTION_TYPES_LIST.join('", "');
 
 // These prompts and schemas are moved from the original geminiService.ts
 
