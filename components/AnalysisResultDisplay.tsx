@@ -3,6 +3,8 @@ import { AnalysisResult } from '../types';
 
 const AnalysisResultDisplay: React.FC<{ result: AnalysisResult }> = ({ result }) => {
     
+    // Bu yardımcı fonksiyon, object/array gibi karmaşık değerleri
+    // string'e çevirmek için kullanılıyor ve olduğu gibi kalabilir.
     const renderValue = (value: any) => {
       if (typeof value === 'object' && value !== null) {
         return JSON.stringify(value);
@@ -10,6 +12,49 @@ const AnalysisResultDisplay: React.FC<{ result: AnalysisResult }> = ({ result })
       return String(value);
     }
 
+    // --- YENİ BÖLÜM: PARAGRAF VE CLOZE TEST ANALİZİ GÖRÜNÜMÜ ---
+    // Eğer sonuç 'soruAnalizleri' dizisi içeriyorsa, bu yeni formatı render et.
+    if (result.soruAnalizleri && Array.isArray(result.soruAnalizleri)) {
+        return (
+            <div className="space-y-4 mt-4 border-t border-gray-600 pt-4">
+                <div className="bg-gray-800 p-4 rounded-lg">
+                    <h4 className="text-lg font-bold text-brand-primary mb-3">Genel Analiz</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div><strong className="text-text-secondary">Soru Tipi:</strong> {result.soruTipi || 'Belirtilmemiş'}</div>
+                        {result.anaMetinAnalizi?.konu && <div><strong className="text-text-secondary">Genel Konu:</strong> {result.anaMetinAnalizi.konu}</div>}
+                        {result.anaMetinAnalizi?.anaFikir && <div className="sm:col-span-2"><strong className="text-text-secondary">Ana Fikir:</strong> {result.anaMetinAnalizi.anaFikir}</div>}
+                    </div>
+                </div>
+
+                <div>
+                    <h4 className="text-lg font-bold text-brand-primary mb-3">Soruların Detaylı Analizleri</h4>
+                    <div className="space-y-4">
+                        {result.soruAnalizleri.map((analiz, index) => (
+                            <div key={index} className="bg-gray-800 p-4 rounded-lg">
+                                <p className="text-md font-semibold text-text-primary mb-2">
+                                    <span className="text-brand-primary">Soru {analiz.soruNumarasi}:</span>
+                                    <span className="font-bold text-green-400 float-right">Doğru Cevap: {analiz.dogruCevap}</span>
+                                </p>
+                                <div className="space-y-3 mt-4 text-sm">
+                                    <div>
+                                        <strong className="font-semibold text-text-secondary block mb-1">Detaylı Açıklama:</strong>
+                                        <p className="text-text-primary">{analiz.detayliAciklama}</p>
+                                    </div>
+                                    <div>
+                                        <strong className="font-semibold text-text-secondary block mb-1">Çeldirici Analizi:</strong>
+                                        <p className="text-text-primary">{analiz.celdiriciAnalizi}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- MEVCUT KODUNUZ: TEKİL SORU VE AKIŞI BOZAN CÜMLE ANALİZİ ---
+    // Eğer 'soruAnalizleri' yoksa, eski formatı (mevcut kodunuzu) render et.
     return (
         <div className="space-y-4 mt-4 border-t border-gray-600 pt-4">
             <div className="bg-gray-800 p-4 rounded-lg">
