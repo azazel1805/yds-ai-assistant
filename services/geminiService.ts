@@ -1,11 +1,14 @@
 import { GoogleGenAI, GenerateContentResponse, Chat, Type } from "@google/genai";
 import { HistoryItem } from '../types';
 
-if (!process.env.API_KEY || process.env.API_KEY.startsWith('__')) {
-  throw new Error("API_KEY environment variable not set. Make sure it's configured in your deployment environment.");
+if (!process.env.API_KEY) {
+  throw new Error("API_KEY environment variable not set");
 }
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// --- DOĞRU MODEL ADI ---
+const MODEL_NAME = 'gemini-1.5-flash-latest';
 
 const YDS_ANALYSIS_PROMPT = `
 Sen YDS, YÖKDİL ve e-YDS sınavlarında uzmanlaşmış, son derece dikkatli bir soru analisti ve eğitmensin. Sana bir YDS sorusu verilecek. Görevin, bu soruyu detaylıca analiz etmek ve cevabını MUTLAKA ve SADECE geçerli bir JSON objesi olarak sunmaktır. Cevabının başına veya sonuna asla metin veya markdown (\`\`\`json) ekleme. Sadece saf JSON döndür.
@@ -66,7 +69,7 @@ Soru tipini analiz ederek aşağıdaki JSON yapılarından uygun olanı doldur.
 export const analyzeQuestion = async (question: string): Promise<string> => {
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: MODEL_NAME,
       contents: question,
       config: {
         systemInstruction: YDS_ANALYSIS_PROMPT,
@@ -97,7 +100,7 @@ export const getDictionaryEntry = async (word: string, language: string = 'Turki
   `;
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: MODEL_NAME,
       contents: prompt,
     });
     return response.text;
@@ -110,7 +113,7 @@ export const getDictionaryEntry = async (word: string, language: string = 'Turki
 export const generateQuestions = async (prompt: string): Promise<string> => {
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: MODEL_NAME,
       contents: prompt,
     });
     return response.text;
@@ -169,7 +172,7 @@ const CLOZE_TEST_SCHEMA = {
 export const generateClozeTest = async (prompt: string): Promise<string> => {
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: MODEL_NAME,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -194,7 +197,7 @@ Sen, Türk öğrencilere YDS ve YÖKDİL gibi İngilizce yeterlilik sınavların
 
 export const createTutorChatSession = (): Chat => {
   const chat: Chat = ai.chats.create({
-    model: 'gemini-2.5-flash',
+    model: MODEL_NAME,
     config: {
       systemInstruction: AI_TUTOR_PROMPT,
     },
@@ -212,7 +215,7 @@ ${passage}
 
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: MODEL_NAME,
       contents: prompt,
       config: {
         systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to analyze an English text and provide a structured learning module in JSON format. The JSON output MUST conform to the provided schema. Do not add any text or markdown before or after the JSON object.`,
@@ -301,7 +304,7 @@ export const getPersonalizedFeedback = async (history: HistoryItem[]): Promise<s
 
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: MODEL_NAME,
       contents: prompt,
       config: {
         systemInstruction: `You are an expert YDS exam coach. Your task is to analyze the provided history of a student's work. Identify their top 1-3 weakest areas based on the question types they have analyzed. Provide a concise, encouraging recommendation for them to improve. Then, list their weak topics in a structured format. The entire output must be a valid JSON object conforming to the schema. Do not add any text before or after the JSON. The 'questionType' in the output MUST EXACTLY MATCH one of the keys from this list: ["Kelime Sorusu", "Dil Bilgisi Sorusu", "Cloze Test Sorusu", "Cümle Tamamlama Sorusu", "Çeviri Sorusu", "Paragraf Sorusu", "Diyalog Tamamlama Sorusu", "Restatement (Yeniden Yazma) Sorusu", "Paragraf Tamamlama Sorusu", "Akışı Bozan Cümle Sorusu"].`,
@@ -346,7 +349,7 @@ export const getPersonalizedFeedback = async (history: HistoryItem[]): Promise<s
 export const getWritingTopic = async (): Promise<string> => {
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: MODEL_NAME,
             contents: 'Generate a single, random English essay topic suitable for a YDS exam.',
         });
         return response.text.trim();
@@ -366,7 +369,7 @@ export const analyzeWrittenText = async (topic: string, text: string): Promise<s
     `;
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: MODEL_NAME,
             contents: prompt,
             config: {
                 systemInstruction: `You are an expert English exam evaluator for Turkish students preparing for the YDS. Analyze the student's essay based on the provided topic. Provide constructive feedback in a structured JSON format. The feedback should be clear, encouraging, and helpful for improvement. Do not add any text or markdown before or after the JSON object.`,
@@ -425,7 +428,7 @@ export const generateListeningTask = async (difficulty: string): Promise<string>
 
     try {
         const response: GenerateContentResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: MODEL_NAME,
             contents: prompt,
             config: {
                 systemInstruction: `You are an English exam content creator. Your task is to generate a listening comprehension exercise. The output must be a valid JSON object conforming to the schema. Do not add any text or markdown before or after the JSON object.`,
