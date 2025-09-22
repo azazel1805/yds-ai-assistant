@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { useAuth } from './AuthContext';
@@ -11,7 +10,7 @@ const ALL_CHALLENGES: Omit<DailyChallenge, 'id' | 'progress' | 'completed'>[] = 
     { description: "AI Eğitmen Onur'a bir soru sor.", type: 'tutor', target: 1 },
     { description: "Bir okuma parçasını analiz et.", type: 'reading', target: 1 },
     { description: "Yazma Asistanı'nda bir metin analizi yap.", type: 'writing', target: 1 },
-    { description: "Bir dinleme pratiği görevi oluştur.", type: 'listening', target: 1 },
+    
     ...Object.values(QUESTION_TYPES).map(type => ({
         description: `1 adet '${type}' sorusu analiz et.`,
         type: 'analyze' as ChallengeType,
@@ -82,11 +81,11 @@ export const ChallengeProvider: React.FC<{ children: ReactNode }> = ({ children 
                 return prev;
             }
 
-            // Check if the action matches the challenge type
             const typeMatches = currentChallenge.type === type;
-            // Check if meta conditions (like questionType) match
-            const metaMatches = !currentChallenge.meta || 
-                                (currentChallenge.meta.questionType === details?.questionType);
+            const requiredQuestionType = currentChallenge.meta?.questionType;
+            
+            // Check if meta conditions (like questionType) match using `startsWith` for flexibility
+            const metaMatches = !requiredQuestionType || (details?.questionType?.startsWith(requiredQuestionType));
 
             if (typeMatches && metaMatches) {
                 const newProgress = currentChallenge.progress + 1;
