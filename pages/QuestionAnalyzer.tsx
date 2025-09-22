@@ -42,7 +42,7 @@ const QuestionAnalyzer: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       <div className="bg-bg-secondary p-6 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4 text-text-primary">YDS Soru Analisti</h2>
-        <p className="mb-4 text-text-secondary">YDS, YÖKDİL veya e-YDS sorusunu aşağıya yapıştırın ve detaylı bir analiz alın.</p>
+        <p className="mb-4 text-text-secondary">YDS sorusunu aşağıya yapıştırın ve detaylı bir analiz alın.</p>
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
