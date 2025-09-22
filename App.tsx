@@ -1,12 +1,12 @@
+
 import React, { useState, ReactNode } from 'react';
 import Dashboard from './pages/Dashboard';
 import QuestionAnalyzer from './pages/QuestionAnalyzer';
 import AITutor from './pages/AITutor';
 import Dictionary from './pages/Dictionary';
-import QuestionGenerator, { GeneratorConfig } from './pages/QuestionGenerator';
 import History from './pages/History';
 import { HistoryProvider } from './context/HistoryContext';
-import { AnalyzeIcon, DictionaryIcon, GenerateIcon, HistoryIcon, DashboardIcon, LogoutIcon, TutorIcon, ReadingIcon, WritingIcon, VocabularyIcon, MenuIcon, CloseIcon } from './components/icons/Icons';
+import { AnalyzeIcon, DictionaryIcon, HistoryIcon, DashboardIcon, LogoutIcon, TutorIcon, ReadingIcon, WritingIcon, VocabularyIcon, MenuIcon, CloseIcon } from './components/icons/Icons';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import ReadingPractice from './pages/ReadingPractice';
@@ -14,23 +14,13 @@ import WritingAssistant from './pages/WritingAssistant';
 import VocabularyTrainer from './pages/VocabularyTrainer';
 
 
-type Tab = 'dashboard' | 'analyzer' | 'tutor' | 'reading' | 'writing' | 'dictionary' | 'generator' | 'vocabulary' | 'history';
+type Tab = 'dashboard' | 'analyzer' | 'tutor' | 'reading' | 'writing' | 'dictionary' | 'vocabulary' | 'history';
 
 const App: React.FC = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
-  const [generatorConfig, setGeneratorConfig] = useState<GeneratorConfig | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleNavigateToGenerator = (config: GeneratorConfig) => {
-    setGeneratorConfig(config);
-    setActiveTab('generator');
-  };
-
-  const clearGeneratorConfig = () => {
-    setGeneratorConfig(null);
-  };
-  
   if (!user) {
     return <LoginPage />;
   }
@@ -43,7 +33,6 @@ const App: React.FC = () => {
     { id: 'writing', label: 'Yazma Pratiği', icon: <WritingIcon /> },
     { id: 'dictionary', label: 'Sözlük', icon: <DictionaryIcon /> },
     { id: 'vocabulary', label: 'Kelime Antrenörü', icon: <VocabularyIcon /> },
-    { id: 'generator', label: 'Soru Üretici', icon: <GenerateIcon /> },
     { id: 'history', label: 'Geçmiş', icon: <HistoryIcon /> },
   ];
 
@@ -55,7 +44,7 @@ const App: React.FC = () => {
   const renderContent = (): ReactNode => {
       switch (activeTab) {
           case 'dashboard':
-              return <Dashboard onNavigateToGenerator={handleNavigateToGenerator} onNavigate={handleTabClick} />;
+              return <Dashboard onNavigate={handleTabClick} />;
           case 'analyzer':
               return <QuestionAnalyzer />;
           case 'tutor':
@@ -66,14 +55,12 @@ const App: React.FC = () => {
               return <WritingAssistant />;
           case 'dictionary':
               return <Dictionary />;
-          case 'generator':
-              return <QuestionGenerator initialConfig={generatorConfig} onConfigUsed={clearGeneratorConfig} />;
           case 'vocabulary':
               return <VocabularyTrainer />;
           case 'history':
               return <History />;
           default:
-              return <Dashboard onNavigateToGenerator={handleNavigateToGenerator} onNavigate={handleTabClick} />;
+              return <Dashboard onNavigate={handleTabClick} />;
       }
   };
 

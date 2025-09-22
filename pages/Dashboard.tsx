@@ -5,7 +5,6 @@ import { getPersonalizedFeedback } from '../services/geminiService';
 import { PersonalizedFeedback } from '../types';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
-import { GeneratorConfig } from './QuestionGenerator';
 import { useChallenge } from '../context/ChallengeContext';
 import { useVocabulary } from '../context/VocabularyContext';
 import { VocabularyIcon } from '../components/icons/Icons';
@@ -16,11 +15,10 @@ interface ChartData {
 }
 
 interface DashboardProps {
-    onNavigateToGenerator: (config: GeneratorConfig) => void;
     onNavigate: (tab: 'vocabulary' | 'dictionary') => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onNavigateToGenerator, onNavigate }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { history } = useHistory();
   const { challengeState } = useChallenge();
   const { vocabularyList } = useVocabulary();
@@ -199,13 +197,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToGenerator, onNavigate
                     <h4 className="font-semibold text-brand-primary">Odaklanılacak Konular:</h4>
                     <div className="flex flex-wrap gap-2 mt-2">
                         {feedback.weakTopics.map(topic => (
-                            <button
+                            <div
                                 key={topic.questionType}
-                                onClick={() => onNavigateToGenerator({ questionType: topic.questionType })}
-                                className="px-4 py-2 bg-gray-700 text-brand-primary rounded-full hover:bg-brand-secondary hover:text-white transition-colors duration-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                className="px-4 py-2 bg-gray-700 text-brand-primary rounded-full text-sm"
                             >
-                                Pratik Yap: {topic.topic}
-                            </button>
+                                {topic.topic}
+                            </div>
                         ))}
                     </div>
                 </div>

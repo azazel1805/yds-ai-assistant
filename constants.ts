@@ -1,6 +1,8 @@
 
-export const EXAM_TYPES = ["YDS", "YÖKDİL"];
-export const DIFFICULTY_LEVELS = ["Kolay", "Orta", "Zor"];
+// Fix: Add EXAM_TYPES and DIFFICULTY_LEVELS exports
+export const EXAM_TYPES = ["YDS", "YÖKDİL", "e-YDS", "TOEFL", "IELTS"] as const;
+export const DIFFICULTY_LEVELS = ["Easy", "Intermediate", "Advanced", "Expert"] as const;
+
 export const QUESTION_TYPES = {
     "Kelime Sorusu": "Kelime Sorusu",
     "Dil Bilgisi Sorusu": "Dil Bilgisi Sorusu",

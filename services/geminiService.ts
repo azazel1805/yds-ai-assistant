@@ -1,3 +1,4 @@
+
 import { ChatMessage, HistoryItem } from '../types';
 
 // Helper function to call our secure Netlify serverless function
@@ -35,21 +36,28 @@ export const getDictionaryEntry = async (word: string, language: string = 'Turki
   return result.text;
 };
 
-export const generateQuestions = async (prompt: string): Promise<string> => {
-  const result = await callGeminiApi('generateQuestions', { prompt });
-  return result.text;
-};
-
-export const generateClozeTest = async (prompt: string): Promise<string> => {
-  const result = await callGeminiApi('generateClozeTest', { prompt });
-  return result.text;
-};
-
 export const sendTutorMessage = async (history: ChatMessage[], message: string): Promise<string> => {
   const result = await callGeminiApi('sendTutorMessage', { history, message });
   return result.text;
 };
 
+// Fix: Add generateQuestions function for QuestionGenerator
+export const generateQuestions = async (prompt: string): Promise<string> => {
+    const result = await callGeminiApi('generateQuestions', { prompt });
+    return result.text;
+};
+
+// Fix: Add generateClozeTest function for QuestionGenerator
+export const generateClozeTest = async (prompt: string): Promise<string> => {
+    const result = await callGeminiApi('generateClozeTest', { prompt });
+    return result.text;
+};
+
+// Fix: Add generateListeningTask function for ListeningPractice
+export const generateListeningTask = async (difficulty: string): Promise<string> => {
+    const result = await callGeminiApi('generateListeningTask', { difficulty });
+    return result.text;
+};
 
 export const analyzeReadingPassage = async (passage: string): Promise<string> => {
     const result = await callGeminiApi('analyzeReadingPassage', { passage });
@@ -58,12 +66,6 @@ export const analyzeReadingPassage = async (passage: string): Promise<string> =>
 
 export const getPersonalizedFeedback = async (history: HistoryItem[]): Promise<string> => {
     const result = await callGeminiApi('getPersonalizedFeedback', { history });
-    return result.text;
-};
-
-// Fix: Add and export generateListeningTask to be used by the Listening Practice page.
-export const generateListeningTask = async (difficulty: string): Promise<string> => {
-    const result = await callGeminiApi('generateListeningTask', { difficulty });
     return result.text;
 };
 

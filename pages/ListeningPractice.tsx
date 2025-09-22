@@ -35,7 +35,7 @@ const ListeningPractice: React.FC = () => {
       const resultText = await generateListeningTask(difficulty);
       const resultJson: ListeningTask = JSON.parse(resultText);
       setTask(resultJson);
-      trackAction('listening');
+      // Fix: Removed trackAction call for deprecated 'listening' challenge type.
     } catch (e: any) {
       setError(e.message || 'Dinleme görevi oluşturulurken bir hata oluştu.');
     } finally {

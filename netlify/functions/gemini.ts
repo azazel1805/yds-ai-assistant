@@ -1,3 +1,4 @@
+
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { GoogleGenAI, Type } from "@google/genai";
 
@@ -65,35 +66,6 @@ Sen, Türk öğrencilere YDS ve YÖKDİL gibi İngilizce yeterlilik sınavların
 - Kullanıcının sorduğu sorulara doğrudan ve net yanıtlar ver.
 `;
 
-const CLOZE_TEST_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    clozeTests: {
-      type: Type.ARRAY,
-      description: "An array of cloze test objects, each containing one passage and its 5 questions.",
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          passage: { type: Type.STRING, description: "A text passage with 5 numbered blanks, like (1)___, (2)___, etc." },
-          questions: {
-            type: Type.ARRAY,
-            description: "An array of exactly 5 questions, one for each blank in the passage.",
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                blankNumber: { type: Type.INTEGER },
-                questionType: { type: Type.STRING },
-                options: { type: Type.ARRAY, items: { type: Type.STRING } },
-                correctAnswer: { type: Type.STRING }
-              },
-            }
-          }
-        },
-      }
-    }
-  },
-};
-
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
@@ -124,17 +96,6 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       case 'getDictionaryEntry':
         const dictPrompt = `Provide a detailed dictionary entry for the word or phrase: "${body.word}"\n\nYou MUST include ALL of the following sections, clearly labeled EXACTLY as shown with markdown bolding. If you cannot find information for a section (like Antonyms), you MUST write "N/A" for that section instead of omitting it.\n\n**Pronunciation:** [Provide phonetic spelling or IPA here]\n**Definitions:** [List all common meanings]\n**Synonyms:** [Provide a comma-separated list, or "N/A"]\n**Antonyms:** [Provide a comma-separated list, or "N/A"]\n**Etymology:** [Provide a brief etymology, or "N/A"]\n**Example Sentences:** [List several example sentences]\n**${body.language} Meaning:** [Provide the meaning in ${body.language}]`;
         response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: dictPrompt });
-        break;
-
-      case 'generateQuestions':
-        response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: body.prompt });
-        break;
-
-      case 'generateClozeTest':
-        response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash', contents: body.prompt,
-          config: { responseMimeType: 'application/json', responseSchema: CLOZE_TEST_SCHEMA as any },
-        });
         break;
 
       case 'sendTutorMessage':
@@ -180,18 +141,71 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             }
         });
         break;
-      
-      // Fix: Add a case to handle listening task generation.
+
+      case 'getWritingTopic':
+        response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: 'Generate a single, random English essay topic suitable for a YDS exam.',
+        });
+        break;
+
+      // Fix: Add generateQuestions handler
+      case 'generateQuestions':
+        response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: body.prompt,
+        });
+        break;
+
+      // Fix: Add generateClozeTest handler
+      case 'generateClozeTest':
+        response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: body.prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        clozeTests: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    passage: { type: Type.STRING },
+                                    questions: {
+                                        type: Type.ARRAY,
+                                        items: {
+                                            type: Type.OBJECT,
+                                            properties: {
+                                                blankNumber: { type: Type.INTEGER },
+                                                questionType: { type: Type.STRING },
+                                                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                                correctAnswer: { type: Type.STRING }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        break;
+
+      // Fix: Add generateListeningTask handler
       case 'generateListeningTask':
         response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `Generate an English listening comprehension task for a Turkish student at a ${body.difficulty} difficulty level.`,
+            contents: `Generate an English listening practice task for a Turkish speaker at a ${body.difficulty} difficulty level. The task should include a short script and a few multiple-choice questions about it.`,
             config: {
-                systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to generate a short audio script and a few multiple-choice questions based on it. The entire output must be a valid JSON object conforming to the schema. Do not add any text before or after the JSON.`,
+                systemInstruction: `You are an expert English language instructor. Your task is to generate a listening practice module in JSON format. The JSON output MUST conform to the provided schema. Do not add any text or markdown before or after the JSON object.`,
                 responseMimeType: 'application/json',
                 responseSchema: {
-                    type: Type.OBJECT, properties: {
-                        script: { type: Type.STRING, description: "A short English audio script (2-4 sentences)." },
+                    type: Type.OBJECT,
+                    properties: {
+                        script: { type: Type.STRING },
                         questions: {
                             type: Type.ARRAY,
                             items: {
@@ -203,25 +217,18 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
                                         items: {
                                             type: Type.OBJECT,
                                             properties: {
-                                                key: { type: Type.STRING, description: "e.g., 'A', 'B', 'C', 'D'" },
-                                                value: { type: Type.STRING, description: "The text of the option." }
+                                                key: { type: Type.STRING },
+                                                value: { type: Type.STRING }
                                             }
                                         }
                                     },
-                                    correctAnswer: { type: Type.STRING, description: "The key of the correct option, e.g., 'B'" }
+                                    correctAnswer: { type: Type.STRING }
                                 }
                             }
                         }
                     }
                 }
             }
-        });
-        break;
-
-      case 'getWritingTopic':
-        response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: 'Generate a single, random English essay topic suitable for a YDS exam.',
         });
         break;
 

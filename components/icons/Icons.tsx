@@ -1,9 +1,9 @@
+
 import React from 'react';
 
 // text-xl is equivalent to the previous h-5 w-5 size
 export const AnalyzeIcon: React.FC = () => <span role="img" aria-label="Analyze icon" className="text-xl">📝</span>;
 export const DictionaryIcon: React.FC = () => <span role="img" aria-label="Dictionary icon" className="text-xl">📙</span>;
-export const GenerateIcon: React.FC = () => <span role="img" aria-label="Generate icon" className="text-xl">💡</span>;
 export const HistoryIcon: React.FC = () => <span role="img" aria-label="History icon" className="text-xl">🕰️</span>;
 export const DashboardIcon: React.FC = () => <span role="img" aria-label="Dashboard icon" className="text-xl">📊</span>;
 export const LogoutIcon: React.FC = () => <span role="img" aria-label="Logout icon" className="text-xl">🚪</span>;

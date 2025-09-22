@@ -1,3 +1,4 @@
+
 export interface AnalysisResult {
   soruTipi?: string;
   analiz?: {
@@ -27,17 +28,6 @@ export interface HistoryItem {
   timestamp: string;
 }
 
-export interface ParsedQuestion {
-  id: number;
-  fullText: string;
-  questionText: string;
-  options: {
-    key: string;
-    value: string;
-  }[];
-  correctAnswer: string;
-}
-
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
@@ -60,6 +50,24 @@ export interface KeyVocabulary {
 export interface ReadingAnalysisResult {
   summary: string;
   vocabulary: KeyVocabulary[];
+  questions: ReadingQuestion[];
+}
+
+// Fix: Add ParsedQuestion interface for QuestionGenerator
+export interface ParsedQuestion {
+  id: number;
+  fullText: string;
+  questionText: string;
+  options: {
+    key: string;
+    value: string;
+  }[];
+  correctAnswer: string;
+}
+
+// Fix: Add ListeningTask interface for ListeningPractice
+export interface ListeningTask {
+  script: string;
   questions: ReadingQuestion[];
 }
 
@@ -90,15 +98,9 @@ export interface WritingAnalysis {
   structureAndCohesion: string;
 }
 
-// Fix: Add ListeningTask interface for the Listening Practice page.
-export interface ListeningTask {
-  script: string;
-  questions: ReadingQuestion[];
-}
-
 // Types for Daily Challenge
-// Fix: Add 'listening' to ChallengeType to allow tracking this action.
-export type ChallengeType = 'analyze' | 'dictionary' | 'tutor' | 'reading' | 'writing' | 'listening';
+// Removed 'listening' from ChallengeType as the feature is deleted.
+export type ChallengeType = 'analyze' | 'dictionary' | 'tutor' | 'reading' | 'writing';
 
 export interface DailyChallenge {
   id: string;
