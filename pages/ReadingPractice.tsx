@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { analyzeReadingPassage } from '../services/geminiService';
 import { ReadingAnalysisResult } from '../types';
@@ -6,7 +5,6 @@ import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
 import { useChallenge } from '../context/ChallengeContext';
 import { useVocabulary } from '../context/VocabularyContext';
-
 
 const ReadingPractice: React.FC = () => {
   const [text, setText] = useState('');
@@ -26,7 +24,6 @@ const ReadingPractice: React.FC = () => {
     }
   };
 
-
   const handleAnalyze = async () => {
     if (!text.trim()) {
       setError('Lütfen analiz edilecek bir metin girin.');
@@ -38,8 +35,9 @@ const ReadingPractice: React.FC = () => {
     setUserAnswers({});
     setShowResults(false);
     try {
-      const resultText = await analyzeReadingPassage(text);
-      const resultJson: ReadingAnalysisResult = JSON.parse(resultText);
+      // DÜZELTME: analyzeReadingPassage zaten parse edilmiş bir JSON objesi döndürüyor.
+      // Bu yüzden tekrar JSON.parse yapmıyoruz.
+      const resultJson: ReadingAnalysisResult = await analyzeReadingPassage(text);
       setResult(resultJson);
       trackAction('reading');
     } catch (e: any) {
@@ -95,7 +93,8 @@ const ReadingPractice: React.FC = () => {
           <div className="bg-bg-secondary p-6 rounded-lg shadow-lg">
             <h3 className="text-xl font-bold text-brand-primary mb-3">Anahtar Kelimeler</h3>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {result.vocabulary.map((item, index) => (
+              {/* DÜZELTME: API'den vocabulary dizisi gelmeme ihtimaline karşı kontrol eklendi */}
+              {(result.vocabulary || []).map((item, index) => (
                 <li key={index} className="bg-gray-700 p-3 rounded-md flex justify-between items-center">
                   <div>
                     <span className="font-bold text-text-primary">{item.word}:</span>
@@ -117,11 +116,13 @@ const ReadingPractice: React.FC = () => {
           <div className="bg-bg-secondary p-6 rounded-lg shadow-lg">
             <h3 className="text-xl font-bold text-brand-primary mb-3">Anlama Soruları</h3>
             <div className="space-y-6">
-              {result.questions.map((q, index) => (
+              {/* DÜZELTME: API'den questions dizisi gelmeme ihtimaline karşı kontrol eklendi */}
+              {(result.questions || []).map((q, index) => (
                 <div key={index}>
                   <p className="font-semibold text-text-primary mb-4 whitespace-pre-wrap"><span className="text-brand-primary">{index + 1}.</span> {q.question}</p>
                   <div className="space-y-3">
-                    {q.options.map(opt => {
+                    {/* DÜZELTME: Bir soru içinde options dizisi gelmeme ihtimaline karşı kontrol eklendi */}
+                    {(q.options || []).map(opt => {
                       const isSelected = userAnswers[index] === opt.key;
                       const isCorrect = opt.key === q.correctAnswer;
                       let baseClass = "flex items-center p-3 rounded-md transition-all duration-200 border-2";
@@ -153,7 +154,7 @@ const ReadingPractice: React.FC = () => {
                 </div>
               ))}
             </div>
-            {!showResults && result.questions.length > 0 && (
+            {result.questions && result.questions.length > 0 && !showResults && (
               <button onClick={handleCheckAnswers} className="mt-6 w-full bg-brand-secondary hover:bg-brand-primary text-white font-bold py-3 px-4 rounded-md transition duration-300">
                 Cevapları Kontrol Et
               </button>
