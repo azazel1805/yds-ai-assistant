@@ -1,6 +1,5 @@
-# Netlify Functions (sunucusuz fonksiyonlar) için genel yapılandırma
-[functions]
-  # Tüm fonksiyonlar için zaman aşımı süresini saniye cinsinden ayarla
-  # Pro planı için maksimum 26 saniyedir. 25 güvenli bir değerdir.
-  # Ücretsiz planda bu süre daha düşük olabilir ancak denemeye değer.
+# Bu, tüm fonksiyonlara uygulanacak ayarlar için doğru formattır.
+[functions."*"]
+  # Zaman aşımı süresini saniye cinsinden ayarla.
+  # 25 saniye, karmaşık analiz işlemleri için yeterli olacaktır.
   timeout = 25
