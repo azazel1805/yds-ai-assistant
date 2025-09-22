@@ -8,7 +8,7 @@ import { useChallenge } from '../context/ChallengeContext';
 
 const AITutor: React.FC = () => {
     const [history, setHistory] = useState<ChatMessage[]>([
-        { role: 'model', text: 'Merhaba! Ben Onur, senin kişisel AI İngilizce eğitmenin. YDS ve YÖKDİL yolculuğunda sana nasıl yardımcı olabilirim?' }
+        { role: 'model', text: 'Merhaba! Ben Onur, senin kişisel AI İngilizce eğitmenin. YDS yolculuğunda sana nasıl yardımcı olabilirim?' }
     ]);
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
