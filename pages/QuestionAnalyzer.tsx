@@ -30,7 +30,7 @@ const QuestionAnalyzer: React.FC = () => {
       const resultJson: AnalysisResult = JSON.parse(resultText);
       setAnalysisResult(resultJson);
       addHistoryItem(question, resultJson);
-      trackAction('analyze', { questionType: resultJson.soruTipi });
+      trackAction('analysis', { questionType: resultJson.soruTipi });
     } catch (e: any) {
       setError(e.message || 'Analiz sırasında bir hata oluştu. Lütfen konsolu kontrol edin.');
     } finally {
