@@ -59,9 +59,24 @@ export const generateListeningTask = async (difficulty: string): Promise<string>
     return result.text;
 };
 
-export const analyzeReadingPassage = async (passage: string): Promise<string> => {
-    const result = await callGeminiApi('analyzeReadingPassage', { passage });
-    return result.text;
+export const getReadingSummaryAndVocab = async (passage: string): Promise<any> => {
+    const result = await callGeminiApi('getReadingSummaryAndVocab', { passage });
+    try {
+      return JSON.parse(result.text);
+    } catch (e) {
+      console.error("Failed to parse JSON from getReadingSummaryAndVocab:", result.text);
+      throw new Error("Invalid JSON response for summary/vocab.");
+    }
+};
+
+export const getReadingQuestions = async (passage: string): Promise<any> => {
+    const result = await callGeminiApi('getReadingQuestions', { passage });
+    try {
+      return JSON.parse(result.text);
+    } catch (e) {
+      console.error("Failed to parse JSON from getReadingQuestions:", result.text);
+      throw new Error("Invalid JSON response for questions.");
+    }
 };
 
 export const getPersonalizedFeedback = async (history: HistoryItem[]): Promise<string> => {
