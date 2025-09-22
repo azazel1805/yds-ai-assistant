@@ -56,6 +56,29 @@ Soru tipini analiz ederek aşağıdaki JSON yapılarından uygun olanı doldur.
     { "secenek": "E) V", "aciklama": "Bu cümlenin neden akışı bozmadığını kısaca belirt." }
   ]
 }
+
+3. Paragraf / Cloze Test Analizi:
+{
+  "soruTipi": "Paragraf Sorusu Analizi" veya "Cloze Test Analizi",
+  "anaMetinAnalizi": {
+    "anaFikir": "Paragrafın veya metnin ana fikri tek bir cümleyle.",
+    "konu": "Metnin genel konusu."
+  },
+  "soruAnalizleri": [
+    {
+      "soruNumarasi": "Metindeki soru numarası (örn: 17)",
+      "dogruCevap": "Bu sorunun doğru seçeneğinin harfi (örn: C)",
+      "detayliAciklama": "Bu sorunun doğru cevabının neden doğru olduğuna dair kapsamlı açıklama.",
+      "celdiriciAnalizi": "Bu soru için diğer seçeneklerin neden yanlış olduğunun analizi."
+    },
+    {
+      "soruNumarasi": "Metindeki sonraki soru numarası (örn: 18)",
+      "dogruCevap": "Bu sorunun doğru seçeneğinin harfi (örn: A)",
+      "detayliAciklama": "Bu sorunun doğru cevabının neden doğru olduğuna dair kapsamlı açıklama.",
+      "celdiriciAnalizi": "Bu soru için diğer seçeneklerin neden yanlış olduğunun analizi."
+    }
+  ]
+}
 `;
 
 const AI_TUTOR_PROMPT = `
