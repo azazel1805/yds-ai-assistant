@@ -1,8 +1,10 @@
 
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { GoogleGenAI, Type } from "@google/genai";
+import { QUESTION_TYPES } from "../constants";
 
 // These prompts and schemas are moved from the original geminiService.ts
+const allowedQuestionTypes = Object.values(QUESTION_TYPES).join('", "');
 const YDS_ANALYSIS_PROMPT = `
 Sen YDS, YÖKDİL ve e-YDS sınavlarında uzmanlaşmış, son derece dikkatli bir soru analisti ve eğitmensin. Sana bir YDS sorusu verilecek. Görevin, bu soruyu detaylıca analiz etmek ve cevabını MUTLAKA ve SADECE geçerli bir JSON objesi olarak sunmaktır. Cevabının başına veya sonuna asla metin veya markdown (\`\`\`json) ekleme. Sadece saf JSON döndür.
 
