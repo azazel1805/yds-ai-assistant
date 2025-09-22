@@ -16,7 +16,7 @@ Soru tipini analiz ederek aşağıdaki JSON yapılarından uygun olanı doldur.
 
 1. Genel Soru Tipi (Kelime, Gramer, Bağlaç, Cümle Tamamlama, vb.):
 {
-  "soruTipi": "Tespit edilen soru tipi (Örn: Gramer - Tense)",
+  "soruTipi": "Tespit edilen soru tipi. Bu alan için değer MUTLAKA şu listeden biriyle başlamalıdır: [\"${allowedQuestionTypes}\"]. Gerekirse, ana tipten sonra bir tire (-) ile alt tipi belirtebilirsin (Örn: Dil Bilgisi Sorusu - Tense).",
   "analiz": {
     "ipucu_1": "Soruyu çözmek için ilk ipucu.",
     "ipucu_2": "İkinci önemli ipucu.",
