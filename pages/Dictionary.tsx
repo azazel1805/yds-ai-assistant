@@ -7,8 +7,6 @@ import { useChallenge } from '../context/ChallengeContext';
 import { useVocabulary } from '../context/VocabularyContext';
 
 
-const PEXELS_API_KEY = (process.env as any).PEXELS_API_KEY;
-
 interface ParsedEntry {
   rawText: string;
   pronunciation?: string;
@@ -45,27 +43,21 @@ const Dictionary: React.FC = () => {
 
 
   const fetchImage = async (query: string): Promise<string | null> => {
-    if (!PEXELS_API_KEY || PEXELS_API_KEY.startsWith('__')) {
-      console.warn('Pexels API key not configured. Skipping image fetch.');
-      return null;
-    }
     try {
-      const response = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1`, {
-        headers: {
-          Authorization: PEXELS_API_KEY
-        }
-      });
+      // Call our secure serverless function proxy
+      const response = await fetch(`/.netlify/functions/pexels?query=${encodeURIComponent(query)}`);
+      
       if (!response.ok) {
-        console.error(`Pexels API error: ${response.statusText}`);
+        const errorData = await response.json();
+        // Don't show an error to the user, just log it and fail gracefully.
+        console.error(`Pexels proxy error: ${errorData.error || response.statusText}`);
         return null;
       }
+      
       const data = await response.json();
-      if (data.photos && data.photos.length > 0) {
-        return data.photos[0].src.large;
-      }
-      return null;
+      return data.imageUrl || null; // The proxy returns { imageUrl: '...' }
     } catch (error) {
-      console.error('Error fetching image from Pexels:', error);
+      console.error('Error fetching image from Pexels proxy:', error);
       return null;
     }
   };

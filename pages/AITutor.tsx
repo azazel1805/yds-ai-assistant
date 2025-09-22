@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import type { Chat } from '@google/genai';
-import { createTutorChatSession } from '../services/geminiService';
+import { sendTutorMessage } from '../services/geminiService';
 import { ChatMessage } from '../types';
 import ErrorMessage from '../components/ErrorMessage';
 import { SendIcon } from '../components/icons/Icons';
@@ -9,7 +7,6 @@ import { useChallenge } from '../context/ChallengeContext';
 
 
 const AITutor: React.FC = () => {
-    const [chatSession, setChatSession] = useState<Chat | null>(null);
     const [history, setHistory] = useState<ChatMessage[]>([
         { role: 'model', text: 'Merhaba! Ben Onur, senin kişisel AI İngilizce eğitmenin. YDS ve YÖKDİL yolculuğunda sana nasıl yardımcı olabilirim?' }
     ]);
@@ -19,16 +16,6 @@ const AITutor: React.FC = () => {
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const { trackAction } = useChallenge();
 
-
-    useEffect(() => {
-        try {
-            const session = createTutorChatSession();
-            setChatSession(session);
-        } catch (e: any) {
-            setError(e.message || "Failed to initialize AI Tutor session.");
-        }
-    }, []);
-
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -37,32 +24,25 @@ const AITutor: React.FC = () => {
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!userInput.trim() || isLoading || !chatSession) return;
+        if (!userInput.trim() || isLoading) return;
 
         const userMessage: ChatMessage = { role: 'user', text: userInput };
+        const currentInput = userInput;
+        
         setIsLoading(true);
         setError('');
         setHistory(prev => [...prev, userMessage]);
         setUserInput('');
         trackAction('tutor');
 
-
         try {
-            const stream = await chatSession.sendMessageStream({ message: userInput });
-            
-            setHistory(prev => [...prev, { role: 'model', text: '' }]);
-
-            for await (const chunk of stream) {
-                const chunkText = chunk.text;
-                setHistory(prev => {
-                    const lastMessage = prev[prev.length - 1];
-                    const updatedMessage = { ...lastMessage, text: lastMessage.text + chunkText };
-                    return [...prev.slice(0, -1), updatedMessage];
-                });
-            }
+            // Pass the current history (before adding the new user message) and the new message itself
+            const responseText = await sendTutorMessage(history, currentInput);
+            setHistory(prev => [...prev, { role: 'model', text: responseText }]);
         } catch (e: any) {
             setError(e.message || 'Failed to get response from AI Tutor.');
-            setHistory(prev => prev.slice(0, -1)); // Correctly remove placeholder on error
+            // Remove the user message on error to allow them to try again
+            setHistory(prev => prev.filter(msg => msg !== userMessage));
         } finally {
             setIsLoading(false);
         }
@@ -93,7 +73,7 @@ const AITutor: React.FC = () => {
                          {msg.role === 'user' && <span className="text-3xl mb-1">🧑‍🎓</span>}
                     </div>
                 ))}
-                 {isLoading && history.length > 0 && history[history.length -1].role === 'user' && (
+                 {isLoading && (
                     <div className="flex items-end gap-3 justify-start mt-4">
                         <span className="text-3xl mb-1">🎓</span>
                         <div className="max-w-lg p-3 rounded-2xl bg-gray-700 text-text-primary rounded-bl-none">

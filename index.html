@@ -5,16 +5,6 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMTRiOGE2Ii8+PHRleHQgeD0iNTAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCI+WURTPC90ZXh0Pjwvc3ZnPg==" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>YDS AI Assistant</title>
-    <script>
-      // This script injects environment variables from Netlify into the browser context.
-      // The placeholders __API_KEY__ and __PEXELS_API_KEY__ will be replaced by Netlify's build process.
-      window.process = { 
-        env: { 
-          API_KEY: "__API_KEY__",
-          PEXELS_API_KEY: "__PEXELS_API_KEY__"
-        } 
-      };
-    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -38,7 +28,8 @@
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
     "react/": "https://aistudiocdn.com/react@^19.1.1/",
     "react": "https://aistudiocdn.com/react@^19.1.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
+    "@netlify/functions": "https://aistudiocdn.com/@netlify/functions@^4.2.5"
   }
 }
 </script>
