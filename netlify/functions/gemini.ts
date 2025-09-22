@@ -2,15 +2,7 @@
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ALLOWED_QUESTION_TYPES_LIST = [
-    "Kelime Sorusu", "Dil Bilgisi Sorusu", "Cloze Test Sorusu",
-    "Cümle Tamamlama Sorusu", "Çeviri Sorusu", "Paragraf Sorusu",
-    "Diyalog Tamamlama Sorusu", "Restatement (Yeniden Yazma) Sorusu",
-    "Paragraf Tamamlama Sorusu", "Anlam Bütünlüğünü Bozan Cümle Sorusu"
-];
-
 // These prompts and schemas are moved from the original geminiService.ts
-
 const YDS_ANALYSIS_PROMPT = `
 Sen YDS, YÖKDİL ve e-YDS sınavlarında uzmanlaşmış, son derece dikkatli bir soru analisti ve eğitmensin. Sana bir YDS sorusu verilecek. Görevin, bu soruyu detaylıca analiz etmek ve cevabını MUTLAKA ve SADECE geçerli bir JSON objesi olarak sunmaktır. Cevabının başına veya sonuna asla metin veya markdown (\`\`\`json) ekleme. Sadece saf JSON döndür.
 
@@ -24,7 +16,7 @@ Soru tipini analiz ederek aşağıdaki JSON yapılarından uygun olanı doldur.
 
 1. Genel Soru Tipi (Kelime, Gramer, Bağlaç, Cümle Tamamlama, vb.):
 {
-  "soruTipi": "Tespit edilen soru tipi. Bu alan için değer MUTLAKA şu listeden biriyle başlamalıdır: [\"${allowedQuestionTypes}\"]. Gerekirse, ana tipten sonra bir tire (-) ile alt tipi belirtebilirsin (Örn: Dil Bilgisi Sorusu - Tense).",
+  "soruTipi": "Tespit edilen soru tipi (Örn: Gramer - Tense)",
   "analiz": {
     "ipucu_1": "Soruyu çözmek için ilk ipucu.",
     "ipucu_2": "İkinci önemli ipucu.",
@@ -64,29 +56,6 @@ Soru tipini analiz ederek aşağıdaki JSON yapılarından uygun olanı doldur.
     { "secenek": "E) V", "aciklama": "Bu cümlenin neden akışı bozmadığını kısaca belirt." }
   ]
 }
-
-3. Paragraf / Cloze Test Analizi:
-{
-  "soruTipi": "Paragraf Sorusu Analizi" veya "Cloze Test Analizi",
-  "anaMetinAnalizi": {
-    "anaFikir": "Paragrafın veya metnin ana fikri tek bir cümleyle.",
-    "konu": "Metnin genel konusu."
-  },
-  "soruAnalizleri": [
-    {
-      "soruNumarasi": "Metindeki soru numarası (örn: 17)",
-      "dogruCevap": "Bu sorunun doğru seçeneğinin harfi (örn: C)",
-      "detayliAciklama": "Bu sorunun doğru cevabının neden doğru olduğuna dair kapsamlı açıklama.",
-      "celdiriciAnalizi": "Bu soru için diğer seçeneklerin neden yanlış olduğunun analizi."
-    },
-    {
-      "soruNumarasi": "Metindeki sonraki soru numarası (örn: 18)",
-      "dogruCevap": "Bu sorunun doğru seçeneğinin harfi (örn: A)",
-      "detayliAciklama": "Bu sorunun doğru cevabının neden doğru olduğuna dair kapsamlı açıklama.",
-      "celdiriciAnalizi": "Bu soru için diğer seçeneklerin neden yanlış olduğunun analizi."
-    }
-  ]
-}
 `;
 
 const AI_TUTOR_PROMPT = `
@@ -119,76 +88,46 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     switch (action) {
       case 'analyzeQuestion':
         response = await ai.models.generateContent({
-          model: 'gemini-1.5-pro-latest', contents: body.question,
+          model: 'gemini-2.5-flash', contents: body.question,
           config: { systemInstruction: YDS_ANALYSIS_PROMPT, responseMimeType: 'application/json' },
         });
         break;
 
       case 'getDictionaryEntry':
         const dictPrompt = `Provide a detailed dictionary entry for the word or phrase: "${body.word}"\n\nYou MUST include ALL of the following sections, clearly labeled EXACTLY as shown with markdown bolding. If you cannot find information for a section (like Antonyms), you MUST write "N/A" for that section instead of omitting it.\n\n**Pronunciation:** [Provide phonetic spelling or IPA here]\n**Definitions:** [List all common meanings]\n**Synonyms:** [Provide a comma-separated list, or "N/A"]\n**Antonyms:** [Provide a comma-separated list, or "N/A"]\n**Etymology:** [Provide a brief etymology, or "N/A"]\n**Example Sentences:** [List several example sentences]\n**${body.language} Meaning:** [Provide the meaning in ${body.language}]`;
-        response = await ai.models.generateContent({ model: 'gemini-1.5-pro-latest', contents: dictPrompt });
+        response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: dictPrompt });
         break;
 
       case 'sendTutorMessage':
         const fullPrompt = body.history.map((m: any) => `${m.role}: ${m.text}`).join('\n') + `\nuser: ${body.message}`;
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.5-flash',
             contents: fullPrompt,
             config: { systemInstruction: AI_TUTOR_PROMPT }
         });
         break;
 
-      case 'getReadingSummaryAndVocab':
+      case 'analyzeReadingPassage':
         response = await ai.models.generateContent({
-          model: 'gemini-1.5-pro-latest',
-          contents: `Analyze the following English text. The user is a Turkish speaker preparing for the YDS exam.\nText:\n---\n${body.passage}\n---`,
-          config: {
-            // GÜNCELLENDİ: Talimat daha net hale getirildi.
-            systemInstruction: `You are an expert English language instructor. Analyze the text and provide ONLY a summary and the 10 most important vocabulary words. The output MUST be a valid JSON object. CRITICAL: Each object inside the 'vocabulary' array MUST contain BOTH a 'word' property AND a 'meaning' property. Do not separate them into different objects.`,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT, properties: {
-                summary: { type: Type.STRING, description: "A concise summary of the text in Turkish." },
-                vocabulary: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      word: { type: Type.STRING },
-                      meaning: { type: Type.STRING }
-                    },
-                    // GÜNCELLENDİ: Bu, her objenin hem kelime hem anlam içermesini zorunlu kılar.
-                    required: ["word", "meaning"]
+            model: 'gemini-2.5-flash',
+            contents: `Analyze the following English text. The user is a Turkish speaker preparing for the YDS exam.\nText:\n---\n${body.passage}\n---`,
+            config: {
+                systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to analyze an English text and provide a structured learning module in JSON format. The JSON output MUST conform to the provided schema. Do not add any text or markdown before or after the JSON object.`,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                  type: Type.OBJECT, properties: {
+                    summary: { type: Type.STRING },
+                    vocabulary: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { word: { type: Type.STRING }, meaning: { type: Type.STRING } } } },
+                    questions: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { question: { type: Type.STRING }, options: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { key: { type: Type.STRING }, value: { type: Type.STRING } } } }, correctAnswer: { type: Type.STRING } } } }
                   }
-                },
-              },
-              required: ["summary", "vocabulary"]
-            }
-          },
-        });
-        break;
-
-      // YENİ CASE: Sadece anlama sorularını üretir (DAHA HIZLI)
-      case 'getReadingQuestions':
-        response = await ai.models.generateContent({
-          model: 'gemini-1.5-pro-latest',
-          contents: `Based on the following English text, generate 3-4 multiple-choice comprehension questions suitable for a YDS exam candidate. The user is a Turkish speaker.\nText:\n---\n${body.passage}\n---`,
-          config: {
-            systemInstruction: `You are an expert English language instructor. Your task is to generate questions based on the provided text. The output MUST be a valid JSON object conforming to the schema.`,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT, properties: {
-                questions: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { question: { type: Type.STRING }, options: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { key: { type: Type.STRING }, value: { type: Type.STRING } } } }, correctAnswer: { type: Type.STRING } } } }
-              },
-              required: ["questions"]
-            }
-          },
+                }
+            },
         });
         break;
 
       case 'getPersonalizedFeedback':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.5-flash',
             contents: `Here is a summary of a student's question analysis history for the Turkish YDS exam. Each object represents one analyzed question:\n${JSON.stringify(body.history.map((item: any) => ({ soruTipi: item.analysis.soruTipi, zorlukSeviyesi: item.analysis.zorlukSeviyesi })), null, 2)}`,
             config: {
                 systemInstruction: `You are an expert YDS exam coach. Your task is to analyze the provided history of a student's work. Identify their top 1-3 weakest areas based on the question types they have analyzed. Provide a concise, encouraging recommendation for them to improve. Then, list their weak topics in a structured format. The entire output must be a valid JSON object conforming to the schema. Do not add any text before or after the JSON. The 'questionType' in the output MUST EXACTLY MATCH one of the keys from this list: ["Kelime Sorusu", "Dil Bilgisi Sorusu", "Cloze Test Sorusu", "Cümle Tamamlama Sorusu", "Çeviri Sorusu", "Paragraf Sorusu", "Diyalog Tamamlama Sorusu", "Restatement (Yeniden Yazma) Sorusu", "Paragraf Tamamlama Sorusu", "Akışı Bozan Cümle Sorusu"].`,
@@ -205,7 +144,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
       case 'getWritingTopic':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.5-flash',
             contents: 'Generate a single, random English essay topic suitable for a YDS exam.',
         });
         break;
@@ -213,7 +152,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       // Fix: Add generateQuestions handler
       case 'generateQuestions':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.5-flash',
             contents: body.prompt,
         });
         break;
@@ -221,7 +160,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       // Fix: Add generateClozeTest handler
       case 'generateClozeTest':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.5-flash',
             contents: body.prompt,
             config: {
                 responseMimeType: 'application/json',
@@ -258,7 +197,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       // Fix: Add generateListeningTask handler
       case 'generateListeningTask':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.5-flash',
             contents: `Generate an English listening practice task for a Turkish speaker at a ${body.difficulty} difficulty level. The task should include a short script and a few multiple-choice questions about it.`,
             config: {
                 systemInstruction: `You are an expert English language instructor. Your task is to generate a listening practice module in JSON format. The JSON output MUST conform to the provided schema. Do not add any text or markdown before or after the JSON object.`,
@@ -295,7 +234,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
       case 'analyzeWrittenText':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.5-flash',
             contents: `Essay Topic: "${body.topic}"\nStudent's Essay:\n---\n${body.text}\n---`,
             config: {
                 systemInstruction: `You are an expert English exam evaluator for Turkish students preparing for the YDS. Analyze the student's essay based on the provided topic. Provide constructive feedback in a structured JSON format. The feedback should be clear, encouraging, and helpful for improvement. Do not add any text or markdown before or after the JSON object.`,
