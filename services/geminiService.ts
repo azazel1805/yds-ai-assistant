@@ -61,6 +61,12 @@ export const getPersonalizedFeedback = async (history: HistoryItem[]): Promise<s
     return result.text;
 };
 
+// Fix: Add and export generateListeningTask to be used by the Listening Practice page.
+export const generateListeningTask = async (difficulty: string): Promise<string> => {
+    const result = await callGeminiApi('generateListeningTask', { difficulty });
+    return result.text;
+};
+
 export const getWritingTopic = async (): Promise<string> => {
     const result = await callGeminiApi('getWritingTopic', {});
     return result.text;
@@ -68,10 +74,5 @@ export const getWritingTopic = async (): Promise<string> => {
 
 export const analyzeWrittenText = async (topic: string, text: string): Promise<string> => {
     const result = await callGeminiApi('analyzeWrittenText', { topic, text });
-    return result.text;
-};
-
-export const generateListeningTask = async (difficulty: string): Promise<string> => {
-    const result = await callGeminiApi('generateListeningTask', { difficulty });
     return result.text;
 };

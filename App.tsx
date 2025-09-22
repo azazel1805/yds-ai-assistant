@@ -1,4 +1,3 @@
-
 import React, { useState, ReactNode } from 'react';
 import Dashboard from './pages/Dashboard';
 import QuestionAnalyzer from './pages/QuestionAnalyzer';
@@ -7,16 +6,15 @@ import Dictionary from './pages/Dictionary';
 import QuestionGenerator, { GeneratorConfig } from './pages/QuestionGenerator';
 import History from './pages/History';
 import { HistoryProvider } from './context/HistoryContext';
-import { AnalyzeIcon, DictionaryIcon, GenerateIcon, HistoryIcon, DashboardIcon, LogoutIcon, TutorIcon, ReadingIcon, WritingIcon, VocabularyIcon, ListeningIcon, MenuIcon, CloseIcon } from './components/icons/Icons';
+import { AnalyzeIcon, DictionaryIcon, GenerateIcon, HistoryIcon, DashboardIcon, LogoutIcon, TutorIcon, ReadingIcon, WritingIcon, VocabularyIcon, MenuIcon, CloseIcon } from './components/icons/Icons';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import ReadingPractice from './pages/ReadingPractice';
 import WritingAssistant from './pages/WritingAssistant';
 import VocabularyTrainer from './pages/VocabularyTrainer';
-import ListeningPractice from './pages/ListeningPractice';
 
 
-type Tab = 'dashboard' | 'analyzer' | 'tutor' | 'reading' | 'writing' | 'listening' | 'dictionary' | 'generator' | 'vocabulary' | 'history';
+type Tab = 'dashboard' | 'analyzer' | 'tutor' | 'reading' | 'writing' | 'dictionary' | 'generator' | 'vocabulary' | 'history';
 
 const App: React.FC = () => {
   const { user, logout } = useAuth();
@@ -43,7 +41,6 @@ const App: React.FC = () => {
     { id: 'tutor', label: 'AI Eğitmen', icon: <TutorIcon /> },
     { id: 'reading', label: 'Okuma Pratiği', icon: <ReadingIcon /> },
     { id: 'writing', label: 'Yazma Pratiği', icon: <WritingIcon /> },
-    { id: 'listening', label: 'Dinleme Pratiği', icon: <ListeningIcon /> },
     { id: 'dictionary', label: 'Sözlük', icon: <DictionaryIcon /> },
     { id: 'vocabulary', label: 'Kelime Antrenörü', icon: <VocabularyIcon /> },
     { id: 'generator', label: 'Soru Üretici', icon: <GenerateIcon /> },
@@ -67,8 +64,6 @@ const App: React.FC = () => {
               return <ReadingPractice />;
           case 'writing':
               return <WritingAssistant />;
-          case 'listening':
-              return <ListeningPractice />;
           case 'dictionary':
               return <Dictionary />;
           case 'generator':

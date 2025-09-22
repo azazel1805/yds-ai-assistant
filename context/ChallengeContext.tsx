@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { useAuth } from './AuthContext';
@@ -11,7 +10,6 @@ const ALL_CHALLENGES: Omit<DailyChallenge, 'id' | 'progress' | 'completed'>[] = 
     { description: "AI Eğitmen Onur'a bir soru sor.", type: 'tutor', target: 1 },
     { description: "Bir okuma parçasını analiz et.", type: 'reading', target: 1 },
     { description: "Yazma Asistanı'nda bir metin analizi yap.", type: 'writing', target: 1 },
-    { description: "Bir dinleme pratiği görevi oluştur.", type: 'listening', target: 1 },
     ...Object.values(QUESTION_TYPES).map(type => ({
         description: `1 adet '${type}' sorusu analiz et.`,
         type: 'analyze' as ChallengeType,

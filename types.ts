@@ -1,4 +1,3 @@
-
 export interface AnalysisResult {
   soruTipi?: string;
   analiz?: {
@@ -91,23 +90,14 @@ export interface WritingAnalysis {
   structureAndCohesion: string;
 }
 
-// Types for Listening Practice
-export interface ListeningQuestion {
-  question: string;
-  options: {
-    key: string;
-    value: string;
-  }[];
-  correctAnswer: string;
-}
-
+// Fix: Add ListeningTask interface for the Listening Practice page.
 export interface ListeningTask {
   script: string;
-  questions: ListeningQuestion[];
+  questions: ReadingQuestion[];
 }
 
-
 // Types for Daily Challenge
+// Fix: Add 'listening' to ChallengeType to allow tracking this action.
 export type ChallengeType = 'analyze' | 'dictionary' | 'tutor' | 'reading' | 'writing' | 'listening';
 
 export interface DailyChallenge {

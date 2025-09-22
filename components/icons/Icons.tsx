@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 // text-xl is equivalent to the previous h-5 w-5 size
@@ -13,7 +12,6 @@ export const ReadingIcon: React.FC = () => <span role="img" aria-label="Reading 
 export const WritingIcon: React.FC = () => <span role="img" aria-label="Writing icon" className="text-xl">✍️</span>;
 export const SendIcon: React.FC = () => <span role="img" aria-label="Send icon" className="text-xl">✈️</span>;
 export const VocabularyIcon: React.FC = () => <span role="img" aria-label="Vocabulary icon" className="text-xl">🗂️</span>;
-export const ListeningIcon: React.FC = () => <span role="img" aria-label="Listening icon" className="text-xl">🎧</span>;
 
 
 // text-2xl is equivalent to the previous h-6 w-6 size for the speaker icon
