@@ -109,7 +109,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
       case 'getReadingSummaryAndVocab':
         response = await ai.models.generateContent({
-          model: MODEL_NAME,
+          model: 'gemini-1.5-pro-latest',
           contents: `Analyze the following English text. The user is a Turkish speaker preparing for the YDS exam.\nText:\n---\n${body.passage}\n---`,
           config: {
             systemInstruction: `You are an expert English language instructor. Analyze the text and provide ONLY a summary and the 10 most important vocabulary words. The output MUST be a valid JSON object conforming to the schema. Do not generate comprehension questions.`,
@@ -128,7 +128,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       // YENİ CASE: Sadece anlama sorularını üretir (DAHA HIZLI)
       case 'getReadingQuestions':
         response = await ai.models.generateContent({
-          model: MODEL_NAME,
+          model: 'gemini-1.5-pro-latest',
           contents: `Based on the following English text, generate 3-4 multiple-choice comprehension questions suitable for a YDS exam candidate. The user is a Turkish speaker.\nText:\n---\n${body.passage}\n---`,
           config: {
             systemInstruction: `You are an expert English language instructor. Your task is to generate questions based on the provided text. The output MUST be a valid JSON object conforming to the schema.`,
