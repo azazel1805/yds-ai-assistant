@@ -107,21 +107,39 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         });
         break;
 
-      case 'analyzeReadingPassage':
+      case 'getReadingSummaryAndVocab':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
-            contents: `Analyze the following English text. The user is a Turkish speaker preparing for the YDS exam.\nText:\n---\n${body.passage}\n---`,
-            config: {
-                systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to analyze an English text and provide a structured learning module in JSON format. The JSON output MUST conform to the provided schema. Do not add any text or markdown before or after the JSON object.`,
-                responseMimeType: 'application/json',
-                responseSchema: {
-                  type: Type.OBJECT, properties: {
-                    summary: { type: Type.STRING },
-                    vocabulary: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { word: { type: Type.STRING }, meaning: { type: Type.STRING } } } },
-                    questions: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { question: { type: Type.STRING }, options: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { key: { type: Type.STRING }, value: { type: Type.STRING } } } }, correctAnswer: { type: Type.STRING } } } }
-                  }
-                }
-            },
+          model: MODEL_NAME,
+          contents: `Analyze the following English text. The user is a Turkish speaker preparing for the YDS exam.\nText:\n---\n${body.passage}\n---`,
+          config: {
+            systemInstruction: `You are an expert English language instructor. Analyze the text and provide ONLY a summary and the 10 most important vocabulary words. The output MUST be a valid JSON object conforming to the schema. Do not generate comprehension questions.`,
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT, properties: {
+                summary: { type: Type.STRING, description: "A concise summary of the text in Turkish." },
+                vocabulary: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { word: { type: Type.STRING }, meaning: { type: Type.STRING } } } },
+              },
+              required: ["summary", "vocabulary"]
+            }
+          },
+        });
+        break;
+
+      // YENİ CASE: Sadece anlama sorularını üretir (DAHA HIZLI)
+      case 'getReadingQuestions':
+        response = await ai.models.generateContent({
+          model: MODEL_NAME,
+          contents: `Based on the following English text, generate 3-4 multiple-choice comprehension questions suitable for a YDS exam candidate. The user is a Turkish speaker.\nText:\n---\n${body.passage}\n---`,
+          config: {
+            systemInstruction: `You are an expert English language instructor. Your task is to generate questions based on the provided text. The output MUST be a valid JSON object conforming to the schema.`,
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT, properties: {
+                questions: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { question: { type: Type.STRING }, options: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { key: { type: Type.STRING }, value: { type: Type.STRING } } } }, correctAnswer: { type: Type.STRING } } } }
+              },
+              required: ["questions"]
+            }
+          },
         });
         break;
 
