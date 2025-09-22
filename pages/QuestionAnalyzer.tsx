@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { analyzeQuestion } from '../services/geminiService';
 import { useHistory } from '../context/HistoryContext';
@@ -15,6 +16,7 @@ const QuestionAnalyzer: React.FC = () => {
   const { addHistoryItem } = useHistory();
   const { trackAction } = useChallenge();
 
+
   const handleAnalyze = async () => {
     if (!question.trim()) {
       setError('Lütfen analiz edilecek bir soru girin.');
@@ -24,15 +26,11 @@ const QuestionAnalyzer: React.FC = () => {
     setError('');
     setAnalysisResult(null);
     try {
-      // DÜZELTME 1: Servis fonksiyonu zaten bir obje döndürdüğü için JSON.parse kaldırıldı.
-      const resultJson: AnalysisResult = await analyzeQuestion(question);
-      
+      const resultText = await analyzeQuestion(question);
+      const resultJson: AnalysisResult = JSON.parse(resultText);
       setAnalysisResult(resultJson);
       addHistoryItem(question, resultJson);
-
-      // DÜZELTME 2: Eylem adı 'analysis' olarak düzeltildi.
-      trackAction('analysis', { questionType: resultJson.soruTipi });
-
+      trackAction('analyze', { questionType: resultJson.soruTipi });
     } catch (e: any) {
       setError(e.message || 'Analiz sırasında bir hata oluştu. Lütfen konsolu kontrol edin.');
     } finally {
