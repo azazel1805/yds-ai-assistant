@@ -112,12 +112,24 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
           model: 'gemini-1.5-pro-latest',
           contents: `Analyze the following English text. The user is a Turkish speaker preparing for the YDS exam.\nText:\n---\n${body.passage}\n---`,
           config: {
-            systemInstruction: `You are an expert English language instructor. Analyze the text and provide ONLY a summary and the 10 most important vocabulary words. The output MUST be a valid JSON object conforming to the schema. Do not generate comprehension questions.`,
+            // GÜNCELLENDİ: Talimat daha net hale getirildi.
+            systemInstruction: `You are an expert English language instructor. Analyze the text and provide ONLY a summary and the 10 most important vocabulary words. The output MUST be a valid JSON object. CRITICAL: Each object inside the 'vocabulary' array MUST contain BOTH a 'word' property AND a 'meaning' property. Do not separate them into different objects.`,
             responseMimeType: 'application/json',
             responseSchema: {
               type: Type.OBJECT, properties: {
                 summary: { type: Type.STRING, description: "A concise summary of the text in Turkish." },
-                vocabulary: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { word: { type: Type.STRING }, meaning: { type: Type.STRING } } } },
+                vocabulary: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      word: { type: Type.STRING },
+                      meaning: { type: Type.STRING }
+                    },
+                    // GÜNCELLENDİ: Bu, her objenin hem kelime hem anlam içermesini zorunlu kılar.
+                    required: ["word", "meaning"]
+                  }
+                },
               },
               required: ["summary", "vocabulary"]
             }
