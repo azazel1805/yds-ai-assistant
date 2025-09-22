@@ -1,13 +1,14 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useHistory } from '../context/HistoryContext';
 import { getPersonalizedFeedback } from '../services/geminiService';
-import { PersonalizedFeedback } from '../types';
+import { PersonalizedFeedback, Achievement } from '../types';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
+import { GeneratorConfig } from './QuestionGenerator';
 import { useChallenge } from '../context/ChallengeContext';
 import { useVocabulary } from '../context/VocabularyContext';
 import { VocabularyIcon } from '../components/icons/Icons';
+import { allAchievements } from '../achievements';
 
 
 interface ChartData {
@@ -15,16 +16,21 @@ interface ChartData {
 }
 
 interface DashboardProps {
-    onNavigate: (tab: 'vocabulary' | 'dictionary') => void;
+    onNavigateToGenerator: (config: GeneratorConfig) => void;
+    onNavigate: (tab: 'vocabulary' | 'dictionary' | 'generator' | 'analyzer') => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onNavigateToGenerator, onNavigate }) => {
   const { history } = useHistory();
   const { challengeState } = useChallenge();
   const { vocabularyList } = useVocabulary();
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
   const [feedbackError, setFeedbackError] = useState('');
   const [feedback, setFeedback] = useState<PersonalizedFeedback | null>(null);
+
+  const unlockedAchievements = useMemo(() => {
+    return allAchievements.filter(ach => ach.isUnlocked(history, vocabularyList, challengeState));
+  }, [history, vocabularyList, challengeState]);
 
   const totalAnalyses = history.length;
   const questionTypes: ChartData = {};
@@ -168,6 +174,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           {vocabularyList.length > 0 ? 'Pratik Yap' : 'Kelime Ekle'}
         </button>
       </div>
+
+       <div className="bg-bg-secondary p-6 rounded-lg shadow-lg">
+        <h3 className="text-lg font-bold text-text-primary mb-4">Başarımlar</h3>
+        {unlockedAchievements.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {unlockedAchievements.map(ach => (
+              <div key={ach.id} className="text-center p-3 bg-gray-700 rounded-lg transform hover:scale-105 transition-transform duration-200" title={ach.description}>
+                <div className="text-4xl">{ach.icon}</div>
+                <p className="text-xs font-bold mt-2 h-8 flex items-center justify-center">{ach.title}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-text-secondary text-sm">Henüz bir başarım kazanmadın. Çalışmaya devam et!</p>
+        )}
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard title="Toplam Analiz" value={totalAnalyses} />
@@ -177,7 +199,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
       <div className="bg-bg-secondary p-6 rounded-lg shadow-lg">
         <h3 className="text-lg font-bold text-text-primary mb-2">Kişiselleştirilmiş Çalışma Planı</h3>
-        <p className="text-text-secondary text-sm mb-4">Geçmiş analizlerinize dayanarak yapay zekadan kişisel çalışma önerileri alın.</p>
+        <p className="text-text-secondary text-sm mb-4">Geçmiş analizlerinize dayanarak yapay zekadan 3 günlük kişisel çalışma planı alın.</p>
         <button 
             onClick={handleGetFeedback}
             disabled={isLoadingFeedback}
@@ -193,18 +215,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                     <h4 className="font-semibold text-brand-primary">AI Koçunuzun Önerisi:</h4>
                     <p className="text-text-primary mt-1 text-sm">{feedback.recommendation}</p>
                 </div>
-                <div>
-                    <h4 className="font-semibold text-brand-primary">Odaklanılacak Konular:</h4>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        {feedback.weakTopics.map(topic => (
-                            <div
-                                key={topic.questionType}
-                                className="px-4 py-2 bg-gray-700 text-brand-primary rounded-full text-sm"
-                            >
-                                {topic.topic}
+                 <div>
+                    <h4 className="font-semibold text-brand-primary mb-2">3 Günlük Odaklanma Planı:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {feedback.studyPlan.sort((a,b) => a.day - b.day).map(day => (
+                            <div key={day.day} className="bg-gray-700 p-4 rounded-lg flex flex-col">
+                                <h5 className="font-bold text-text-primary border-b border-gray-600 pb-2 mb-2">📅 Gün {day.day}: <span className="text-brand-primary">{day.focus}</span></h5>
+                                <ul className="list-disc list-inside text-sm space-y-1 text-text-secondary flex-grow">
+                                    {day.tasks.map((task, index) => <li key={index}>{task}</li>)}
+                                </ul>
                             </div>
                         ))}
                     </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4">
+                    <button onClick={() => onNavigate('analyzer')} className="px-3 py-1 bg-gray-700 text-brand-primary rounded-full hover:bg-brand-secondary hover:text-white text-xs">Soru Analistine Git</button>
+                    <button onClick={() => onNavigate('generator')} className="px-3 py-1 bg-gray-700 text-brand-primary rounded-full hover:bg-brand-secondary hover:text-white text-xs">Soru Üreticiye Git</button>
                 </div>
             </div>
         )}
