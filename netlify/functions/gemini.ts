@@ -2,6 +2,14 @@
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { GoogleGenAI, Type } from "@google/genai";
 
+
+const ALLOWED_QUESTION_TYPES_LIST = [
+    "Kelime Sorusu", "Dil Bilgisi Sorusu", "Cloze Test Sorusu",
+    "Cümle Tamamlama Sorusu", "Çeviri Sorusu", "Paragraf Sorusu",
+    "Diyalog Tamamlama Sorusu", "Restatement (Yeniden Yazma) Sorusu",
+    "Paragraf Tamamlama Sorusu", "Anlam Bütünlüğünü Bozan Cümle Sorusu"
+];
+
 // These prompts and schemas are moved from the original geminiService.ts
 const YDS_ANALYSIS_PROMPT = `
 Sen YDS, YÖKDİL ve e-YDS sınavlarında uzmanlaşmış, son derece dikkatli bir soru analisti ve eğitmensin. Sana bir YDS sorusu verilecek. Görevin, bu soruyu detaylıca analiz etmek ve cevabını MUTLAKA ve SADECE geçerli bir JSON objesi olarak sunmaktır. Cevabının başına veya sonuna asla metin veya markdown (\`\`\`json) ekleme. Sadece saf JSON döndür.
@@ -16,7 +24,7 @@ Soru tipini analiz ederek aşağıdaki JSON yapılarından uygun olanı doldur.
 
 1. Genel Soru Tipi (Kelime, Gramer, Bağlaç, Cümle Tamamlama, vb.):
 {
-  "soruTipi": "Tespit edilen soru tipi (Örn: Gramer - Tense)",
+  "soruTipi": "Tespit edilen soru tipi. Bu alan için değer MUTLAKA şu listeden biriyle başlamalıdır: ${JSON.stringify(ALLOWED_QUESTION_TYPES_LIST)}. Gerekirse, ana tipten sonra bir tire (-) ile alt tipi belirtebilirsin (Örn: Dil Bilgisi Sorusu - Tense).",
   "analiz": {
     "ipucu_1": "Soruyu çözmek için ilk ipucu.",
     "ipucu_2": "İkinci önemli ipucu.",
