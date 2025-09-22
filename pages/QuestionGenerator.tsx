@@ -20,11 +20,83 @@ interface ParsedQuiz {
     questions: ParsedQuestion[];
 }
 
-// GÜNCELLENDİ: Bu fonksiyon artık kullanılmadığı için SİLİNDİ.
-// const parseGeneratedQuestions = (text: string): ParsedQuiz => { ... };
+const parseGeneratedQuestions = (text: string): ParsedQuiz => {
+    const questions: ParsedQuestion[] = [];
+    let context: string | null = null;
+    
+    const normalizedText = text.trim().replace(/\r\n/g, '\n');
 
+    // Heuristic: The context is the text before the first numbered question that is followed by options.
+    const firstQuestionRegex = /^\s*1\.(?!\d)[\s\S]*?\n\s*A\)/m;
+    const firstQuestionMatch = normalizedText.match(firstQuestionRegex);
+    let questionsText = normalizedText;
 
-// Cloze Test için parser kalıyor, çünkü o backend'den zaten her zaman belirli bir JSON yapısında geliyor.
+    if (firstQuestionMatch && firstQuestionMatch.index! > 0) {
+        context = normalizedText.substring(0, firstQuestionMatch.index).trim();
+        questionsText = normalizedText.substring(firstQuestionMatch.index);
+    } else if (!/^\s*1\.(?!\d)/.test(normalizedText)) {
+        // If the text doesn't start with a question number, it might all be context.
+        const firstOptionMatch = normalizedText.match(/\n\s*1\./);
+        if(firstOptionMatch && firstOptionMatch.index) {
+            context = normalizedText.substring(0, firstOptionMatch.index).trim();
+            questionsText = normalizedText.substring(firstOptionMatch.index).trim();
+        }
+    }
+    
+    // Split the text into individual question blocks. A question starts with "Number." at the beginning of a line.
+    const questionBlocks = questionsText.split(/^\s*\d+\./m).filter(Boolean);
+
+    // The first block might be part of the context if the text starts like "Passage... 1. Question..."
+    if (!context && questionBlocks.length > 0 && !/[A-E]\)/.test(questionBlocks[0])) {
+         context = (context ? context + '\n\n' : '') + questionBlocks.shift()!.trim();
+    }
+
+    for (const block of questionBlocks) {
+        const cleanedBlock = block.trim();
+        if (!cleanedBlock) continue;
+
+        // More flexible regex for the answer key.
+        const answerMatch = cleanedBlock.match(/(?:Correct answer|Answer is|Correct option|Doğru cevap)\s*:\s*([A-E])/i);
+        const correctAnswer = answerMatch ? answerMatch[1].toUpperCase() : '';
+        
+        if (!correctAnswer) continue; // A question for a quiz needs a correct answer.
+
+        // The question is everything before the first option marker (A), B), etc.)
+        const optionsStartIndex = cleanedBlock.search(/\s*A\)/);
+        if (optionsStartIndex === -1) continue;
+
+        const questionText = cleanedBlock.substring(0, optionsStartIndex).trim();
+        const optionsBlock = cleanedBlock.substring(optionsStartIndex);
+        
+        const optionRegex = /([A-E])\)(.*?)(?=\s*[A-E]\)|$)/gs;
+        const options: { key: string; value: string }[] = [];
+        let match;
+        while ((match = optionRegex.exec(optionsBlock)) !== null) {
+            const key = match[1].toUpperCase();
+            // Clean up the value, remove the answer key part if it was captured
+            const value = match[2].replace(/(?:Correct answer|Answer is|Correct option|Doğru cevap)\s*:\s*[A-E]/i, '').trim();
+            if (value) {
+                options.push({ key, value });
+            }
+        }
+
+        if (options.length >= 2) { // A valid question should have at least 2 options
+             const fullTextForAnalysis = `${context ? context + '\n\n' : ''}${questions.length + 1}. ${questionText}\n${options.map(o => `${o.key}) ${o.value}`).join('\n')}`;
+
+            questions.push({
+                id: questions.length,
+                fullText: fullTextForAnalysis,
+                questionText: questionText,
+                options: options,
+                correctAnswer: correctAnswer,
+            });
+        }
+    }
+
+    return { context, questions };
+};
+
+// --- New Types and Parser for Cloze Tests ---
 interface ClozeTestResponse {
   clozeTests: {
     passage: string;
@@ -100,24 +172,22 @@ const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({ initialConfig, on
     }
   }, [initialConfig, onConfigUsed]);
 
-  // GÜNCELLENDİ: Prompt'lar sadeleştirildi, formatlama talimatları kaldırıldı.
   const constructPrompt = (): string => {
     const basePrompts: { [key: string]: string } = {
-        "Kelime Sorusu": `Generate EXACTLY ${questionCount} unique English Vocabulary Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question MUST be a distinct sentence with a blank for a word or phrasal verb. Provide 5 plausible multiple-choice options.`,
-        "Dil Bilgisi Sorusu": `Generate ${questionCount} English Grammar Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should be a sentence with 1 or 2 blanks related to tense, preposition, or conjunction. Provide 5 plausible multiple-choice options.`,
-        "Cloze Test Sorusu": `Generate ${questionCount} unique English Cloze Test passage(s) for the ${examType} exam in Turkey, at a ${difficulty} difficulty level. Each passage must contain exactly 5 blanks, formatted as (1)___, (2)___, etc. The 5 blanks MUST test one of each of the following specific skills: Vocabulary, Phrasal Verb, Preposition, Tense, and Conjunction. For each blank, provide 5 plausible multiple-choice options, identify the correct one, and specify the questionType field accordingly. The topics should be diverse.`,
-        "Cümle Tamamlama Sorusu": `Generate ${questionCount} English Sentence Completion Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should be an incomplete sentence, and you should provide 5 plausible options to complete it logically and grammatically.`,
-        "Çeviri Sorusu": `Generate ${questionCount} Translation Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Provide a sentence in ${translationDirection === 'tr_to_en' ? 'Turkish' : 'English'} and 5 options in ${translationDirection === 'tr_to_en' ? 'English' : 'Turkish'}, with one correct translation.`,
-        "Paragraf Sorusu": `Generate EXACTLY ${questionCount} English Paragraph passage(s) for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each SINGLE passage MUST be followed by EXACTLY 3 OR 4 multiple-choice questions about it. Provide 5 answer choices for each question.`,
-        "Diyalog Tamamlama Sorusu": `Generate EXACTLY ${questionCount} English Dialogue Completion Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each dialogue must have a missing line. Provide 5 plausible options to fill the blank logically.`,
-        "Restatement (Yeniden Yazma) Sorusu": `Generate ${questionCount} English Restatement Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should present a sentence and 5 options that rephrase it, with only one being the correct restatement.`,
-        "Paragraf Tamamlama Sorusu": `Generate ${questionCount} English Paragraph Completion Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should be a paragraph with one sentence missing. Provide 5 plausible options to complete the paragraph coherently.`,
-        "Akışı Bozan Cümle Sorusu": `Generate ${questionCount} English Irrelevant Sentence Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should be a paragraph of five numbered sentences. One of these sentences should disrupt the logical flow of the paragraph. The options should be the sentences themselves.`,
+        "Kelime Sorusu": `IMPORTANT: Generate EXACTLY ${questionCount} completely new and unique English Vocabulary Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question MUST be a distinct sentence with a blank for a word or phrazal verb, covering diverse topics (e.g., daily life, nature, education, travel, emotions, technology) and using different sentence structures (e.g., questions, statements, negatives). STRICTLY AVOID repeating the same sentence, similar sentence patterns, or previously used topics across questions. The correct option must be chosen from the given choices, and options should be plausible but clearly distinguishable. Format: (Sentence with a ___ blank) A) Option 1 B) Option 2 C) Option 3 D) Option 4 E) Option 5 Correct answer: [letter] Number the questions (e.g., 1., 2., ...).`,
+        "Dil Bilgisi Sorusu": `Generate ${questionCount} English Grammar Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should be a sentence with 1 or 2 blanks related to tense, preposition, or conjunction, with the correct option chosen from the choices. Never repeat the same sentence. Format: (Sentence with ___ blank(s)) A) Option 1 B) Option 2 C) Option 3 D) Option 4 E) Option 5 Correct answer: [letter] Number the questions.`,
+        "Cloze Test Sorusu": `Generate ${questionCount} unique English Cloze Test passage(s) for the ${examType} exam in Turkey, at a ${difficulty} difficulty level. Each passage must contain exactly 5 blanks, formatted as (1)___, (2)___, etc. The 5 blanks MUST test one of each of the following specific skills: Vocabulary, Phrasal Verb, Preposition, Tense, and Conjunction. The order of these question types within the passage can be mixed. For each blank, provide 5 plausible multiple-choice options, identify the correct one, and specify the questionType field accordingly. The topics should be diverse.`,
+        "Cümle Tamamlama Sorusu": `Generate ${questionCount} English Sentence Completion Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should be an incomplete sentence, give the main clause and ask for the sub clause or give the sub clause and ask for the main clause using an appropriate conjunction from the options. The blank can be in the middle or at the beginning but do not use any other completing if the blank is in the ending. Never repeat the same sentence. Format: (Incomplete sentence ___) A) Option 1 B) Option 2 C) Option 3 D) Option 4 E) Option 5 Correct answer: [letter] Number the questions.`,
+        "Çeviri Sorusu": `Generate ${questionCount} Translation Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should be a sentence translated from ${translationDirection === 'tr_to_en' ? 'Turkish to English' : 'English to Turkish'}. Provide a sentence in ${translationDirection === 'tr_to_en' ? 'Turkish' : 'English'} and 5 options in ${translationDirection === 'tr_to_en' ? 'English' : 'Turkish'}, with one correct translation. Ensure variety in sentence structures and topics. Format: (Sentence) A) Option 1 B) Option 2 C) Option 3 D) Option 4 E) Option 5 Correct answer: [letter] Number the questions.`,
+        "Paragraf Sorusu": `Generate EXACTLY ${questionCount} English Paragraph passage(s) for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each SINGLE passage MUST be followed by EXACTLY 3 OR 4 multiple-choice questions about it. DO NOT generate more than 4 questions per passage. Each question must have 5 answer choices (A, B, C, D, E) and the correct answer explicitly stated. Format: (Paragraph text) 1. (Question) A) Option 1 B)... Correct answer: [Letter] 2. (Question) A) Option 1 B)... Correct answer: [Letter] 3. (Question) A) Option 1 B)... Correct answer: [Letter]. Ensure all questions have answers.`,
+        "Diyalog Tamamlama Sorusu": `IMPORTANT: Generate EXACTLY ${questionCount} English Dialogue Completion Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each dialogue must have exactly 5 sentences between two people with randomly chosen names (different names for each dialogue), following the order: Person1 → Person2 → Person1 → Person2 → Person1. One line must be completely missing and represented as '(Speaker: ___)' on its own line, where the missing line can randomly be the 1st, 2nd, 3rd, 4th, or 5th line. The speaker of the missing line must match its position (1st, 3rd, 5th is Person1; 2nd, 4th is Person2). The missing line must be a natural and logical part of the conversation. Format each dialogue followed by: A) Option 1 B) Option 2 C) Option 3 D) Option 4 E) Option 5 Correct answer: [letter] Number the questions.`,
+        "Restatement (Yeniden Yazma) Sorusu": `Generate ${questionCount} English Restatement Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each should be a sentence with 5 options rephrasing it, one correct. Format: (Sentence) A) Option 1 B) Option 2 C) Option 3 D) Option 4 E) Option 5 Correct answer: [letter] Number the questions.`,
+        "Paragraf Tamamlama Sorusu": `Generate ${questionCount} English Paragraph Completion Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each should be a paragraph with a 1-sentence blank. The blank can be any sentence in the paragraph and make it different for each question. Format: (Paragraph with a ___ blank) A) Option 1 B) Option 2 C) Option 3 D) Option 4 E) Option 5 Correct answer: [letter] Number the questions.`,
+        "Akışı Bozan Cümle Sorusu": `Generate ${questionCount} English Irrelevant Sentence Questions for the ${examType} exam in Turkey, at ${difficulty} difficulty level. Each question should be a paragraph consisting of several sentences that follow a logical flow and coherence when read sequentially, but one sentence that is completely related to the topic but disrupts the logical flow or coherence. The task is to identify the sentence that breaks the flow. Format: (Paragraph text with numbered sentences, e.g., (1) Sentence 1. (2) Sentence 2. ...) A) Sentence 1 B) Sentence 2 C) Sentence 3 D) Sentence 4 E) Sentence 5 Correct answer: [letter] Number the questions.`,
     };
     return basePrompts[questionType as keyof typeof basePrompts] || basePrompts["Kelime Sorusu"];
   };
 
-  // GÜNCELLENDİ: Artık metin ayrıştırma yerine doğrudan JSON işleniyor.
   const handleGenerate = async () => {
     setIsLoading(true);
     setError('');
@@ -131,24 +201,14 @@ const QuestionGenerator: React.FC<QuestionGeneratorProps> = ({ initialConfig, on
 
         if (questionType === "Cloze Test Sorusu") {
             const resultText = await generateClozeTest(prompt);
-            const resultJson = JSON.parse(resultText); // Cloze test zaten JSON döner
+            const resultJson = JSON.parse(resultText);
             parsed = parseClozeTestJsonResponse(resultJson);
         } else {
-            // Diğer tüm sorular için JSON modunu kullanıyoruz
-            const resultText = await generateQuestions(prompt, true); // useJsonMode = true
-            const parsedJson: ParsedQuiz = JSON.parse(resultText);
-            
-            // API'den gelen veriye ID ve analiz için tam metin ekleyelim
-            const questionsWithIds = parsedJson.questions.map((q, index) => ({
-                ...q,
-                id: index,
-                fullText: `${parsedJson.context ? parsedJson.context + '\n\n' : ''}${index + 1}. ${q.questionText}\n${q.options.map(o => `${o.key}) ${o.value}`).join('\n')}`
-            }));
-
-            parsed = { ...parsedJson, questions: questionsWithIds };
+            const resultText = await generateQuestions(prompt);
+            parsed = parseGeneratedQuestions(resultText);
         }
 
-        if (!parsed.questions || parsed.questions.length === 0) {
+        if (parsed.questions.length === 0) {
             setError("Generated questions could not be parsed. The format might be unexpected. Please try again.");
         }
         setGeneratedQuiz(parsed);
