@@ -172,6 +172,33 @@ const DECONSTRUCTION_SCHEMA = {
   required: ["mainIdea", "authorTone", "deconstructedSentences"]
 };
 
+const NEWS_QUESTIONS_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    questions: {
+      type: Type.ARRAY,
+      description: "An array of exactly 4 multiple-choice comprehension questions based on the provided text.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          question: { type: Type.STRING },
+          options: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: { key: { type: Type.STRING }, value: { type: Type.STRING } },
+              required: ["key", "value"]
+            }
+          },
+          correctAnswer: { type: Type.STRING }
+        },
+        required: ["question", "options", "correctAnswer"]
+      }
+    }
+  },
+  required: ["questions"]
+};
+
 const AI_TUTOR_PROMPT = `
 Sen, Türk öğrencilere YDS ve YÖKDİL gibi İngilizce yeterlilik sınavlarına hazırlanmalarında yardımcı olan uzman, sabırlı ve teşvik edici bir yapay zeka eğitmensin. Adın Onur. Kullanıcıya kendini Onur olarak tanıt ve bir öğretmen gibi davran, arkadaş canlısı ve destekleyici bir ton kullan.
 - Cevapların her zaman açık, anlaşılır ve eğitici olmalı.
@@ -348,6 +375,57 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
                 responseMimeType: 'application/json',
                 responseSchema: DECONSTRUCTION_SCHEMA,
             }
+        });
+        break;
+      }
+
+            case 'getNewsSummary': {
+        const prompt = `Act as a journalist. Write a compelling, single-paragraph news report in English about the latest news regarding "${body.topic}". The tone should be engaging and informative, like the opening of a news article, not a dry summary.`;
+        
+        const result = await ai.models.generateContent({
+            model: PRO_MODEL_NAME, // Bu özellik için Pro modelini kullanıyoruz.
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+            },
+        });
+
+        const apiSources = result.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        const sources = apiSources
+            .filter(source => source.web?.uri)
+            .map(source => ({
+                web: {
+                    uri: source.web!.uri!,
+                    title: source.web!.title || new URL(source.web!.uri!).hostname,
+                }
+            }));
+        
+        // Frontend'e hem metni hem de kaynakları tek bir JSON string'i olarak gönderiyoruz.
+        const newsResult = {
+            text: result.text,
+            sources: sources
+        };
+
+        return {
+            statusCode: 200,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: JSON.stringify(newsResult) }), // Dikkat: İki kez stringify
+        };
+        // Bu case kendi response'unu döndürdüğü için break'e gerek yok.
+      }
+
+      // YENİ CASE: Haber metnine göre sorular üretir.
+      case 'generateNewsQuestions': {
+        const prompt = `Based on the following news paragraph, generate exactly 4 comprehensive multiple-choice questions to test understanding.\n\nParagraph:\n---\n${body.paragraph}\n---`;
+        
+        response = await ai.models.generateContent({
+          model: 'gemini-1.5-pro-latest',
+          contents: prompt,
+          config: {
+            systemInstruction: `You are an expert in creating educational content. Your task is to generate exactly 4 multiple-choice questions based on the provided text. The entire output must be a valid JSON object conforming to the provided schema.`,
+            responseMimeType: 'application/json',
+            responseSchema: NEWS_QUESTIONS_SCHEMA,
+          },
         });
         break;
       }
