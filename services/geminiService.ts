@@ -141,3 +141,7 @@ export const analyzeWrittenText = async (topic: string, text: string): Promise<s
     const result = await callGeminiApi('analyzeWrittenText', { topic, text });
     return result.text;
 };
+
+export const deconstructPassage = async (passage: string): Promise<any> => {
+  const result = await callApi('deconstructPassage', { passage });
+  return parseJsonGracefully(result.text);
