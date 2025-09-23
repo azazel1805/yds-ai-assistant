@@ -200,7 +200,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         <h2 className="text-3xl font-bold text-text-primary">Dashboard</h2>
         <p className="text-text-secondary mt-1">Genel performans özetiniz.</p>
       </div>
-
+<UpcomingExams />
       <DailyChallengeDisplay />
       
       <div className="bg-bg-secondary p-6 rounded-lg shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
