@@ -239,7 +239,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         break;
 
       
-     
+     }
 
       case 'analyzeWrittenText':
         response = await ai.models.generateContent({
