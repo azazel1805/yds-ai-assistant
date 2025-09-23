@@ -104,7 +104,7 @@ const PassageDeconstruction: React.FC = () => {
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             <div className="bg-bg-secondary p-6 rounded-lg shadow-lg">
-                <h2 className="text-2xl font-bold mb-2 text-text-primary">Pasaj Analizi (Deconstruction)</h2>
+                <h2 className="text-2xl font-bold mb-2 text-text-primary">Metin Analizi (Deconstruction)</h2>
                 <p className="mb-4 text-text-secondary">
                     Karmaşık bir İngilizce metni cümle cümle analiz ederek derinlemesine anlayın. Metni aşağıya yapıştırın ve her cümlenin basitleştirilmiş halini, gramer yapısını ve anahtar kelimelerini keşfedin.
                 </p>
