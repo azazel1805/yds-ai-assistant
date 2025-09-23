@@ -95,8 +95,15 @@ export const analyzeWrittenText = async (topic: string, text: string): Promise<a
 // DÜZELTME: Bu fonksiyon artık doğru yerde, callGeminiApi'ye erişebiliyor.
 export const generateSimilarQuiz = async (originalQuestion: string, analysis: AnalysisResult): Promise<any> => {
   const result = await callGeminiApi('generateSimilarQuiz', { originalQuestion, analysis });
-  // Quiz soruları her zaman JSON formatında geleceği için parse ediyoruz.
-  return parseJsonGracefully(result.text);
+  const parsedResult = parseJsonGracefully(result.text);
+
+  // Eğer AI geçerli bir JSON ama boş bir questions dizisi döndürürse,
+  // bunu yakalayıp kullanıcıya özel bir hata fırlat.
+  if (!parsedResult.questions || parsedResult.questions.length === 0) {
+    throw new Error("Yapay zeka bu konu için yeni sorular üretemedi. Lütfen daha genel bir konuya sahip farklı bir soru deneyin.");
+  }
+  
+  return parsedResult;
 };
 
 // Düz metin döndüren fonksiyonlar (değişiklik yok)
