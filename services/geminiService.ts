@@ -43,9 +43,9 @@ export const sendTutorMessage = async (history: ChatMessage[], message: string):
 };
 
 export const generateSimilarQuiz = async (originalQuestion: string, analysis: AnalysisResult): Promise<any> => {
-  const result = await callGeminiApi('generateSimilarQuiz', { originalQuestion, analysis });
-  // Servisimizdeki akıllı parse fonksiyonu sayesinde bu zaten hazır bir obje dönecektir.
-  return result; 
+  // Parametrelerin doğru sırayla gönderildiğinden emin oluyoruz.
+  const result = await callApi('generateSimilarQuiz', { originalQuestion, analysis });
+  return result; // Servisteki akıllı parse'ı kullanıyoruz.
 };
 
 // Fix: Add generateQuestions function for QuestionGenerator
