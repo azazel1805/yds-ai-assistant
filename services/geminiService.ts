@@ -1,6 +1,6 @@
 // src/services/geminiService.ts
 
-import { ChatMessage, HistoryItem, AnalysisResult, ParsedQuestion } from '../types';
+import { ChatMessage, HistoryItem, AnalysisResult, ParsedQuestion, NewsResult } from '../types';
 
 // --- YENİ EKLENEN FONKSİYON ---
 /**
