@@ -271,7 +271,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         `;
         
         response = await ai.models.generateContent({
-            model: MODEL_NAME,
+            model: 'gemini-1.5-pro-latest',
             contents: prompt,
             config: {
                 systemInstruction: "You are an expert YDS exam question creator. Your response MUST be a valid JSON object that strictly adheres to the provided schema. Generate exactly 5 questions.",
