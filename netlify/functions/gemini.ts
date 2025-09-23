@@ -238,80 +238,8 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         });
         break;
 
-      // Fix: Add generateClozeTest handler
-      case 'generateClozeTest':
-        response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
-            contents: body.prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        clozeTests: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    passage: { type: Type.STRING },
-                                    questions: {
-                                        type: Type.ARRAY,
-                                        items: {
-                                            type: Type.OBJECT,
-                                            properties: {
-                                                blankNumber: { type: Type.INTEGER },
-                                                questionType: { type: Type.STRING },
-                                                options: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                                correctAnswer: { type: Type.STRING }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        break;
-
-      // Fix: Add generateListeningTask handler
-      case 'generateListeningTask':
-        response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
-            contents: `Generate an English listening practice task for a Turkish speaker at a ${body.difficulty} difficulty level. The task should include a short script and a few multiple-choice questions about it.`,
-            config: {
-                systemInstruction: `You are an expert English language instructor. Your task is to generate a listening practice module in JSON format. The JSON output MUST conform to the provided schema. Do not add any text or markdown before or after the JSON object.`,
-                responseMimeType: 'application/json',
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        script: { type: Type.STRING },
-                        questions: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    question: { type: Type.STRING },
-                                    options: {
-                                        type: Type.ARRAY,
-                                        items: {
-                                            type: Type.OBJECT,
-                                            properties: {
-                                                key: { type: Type.STRING },
-                                                value: { type: Type.STRING }
-                                            }
-                                        }
-                                    },
-                                    correctAnswer: { type: Type.STRING }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        break;
+      
+     
 
       case 'analyzeWrittenText':
         response = await ai.models.generateContent({
