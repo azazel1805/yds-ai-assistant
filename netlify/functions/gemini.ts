@@ -341,7 +341,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       case 'deconstructPassage': {
         const prompt = `Deconstruct the following English passage for a Turkish student preparing for the YDS exam.\n---\n${body.passage}\n---`;
         response = await ai.models.generateContent({
-            model: MODEL_NAME,
+            model: 'gemini-1.5-pro-latest',
             contents: prompt,
             config: {
                 systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to deconstruct an English passage sentence by sentence...`,
