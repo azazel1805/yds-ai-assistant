@@ -11,7 +11,7 @@ export const TutorIcon: React.FC = () => <span role="img" aria-label="Tutor icon
 export const ReadingIcon: React.FC = () => <span role="img" aria-label="Reading icon" className="text-xl">📖</span>;
 export const DeconstructIcon: React.FC = () => <span role="img" aria-label="Deconstruct icon" className="text-xl">🔬</span>;
 export const WritingIcon: React.FC = () => <span role="img" aria-label="Writing icon" className="text-xl">✍️</span>;
-export const SendIcon: React.FC = () => <span role="img" aria-label="Send icon" className="text-xl">✈️</span>;
+export const SendIcon: React.FC = () => <span role="img" aria-label="Send icon" className="text-xl">➢</span>;
 export const VocabularyIcon: React.FC = () => <span role="img" aria-label="Vocabulary icon" className="text-xl">🗂️</span>;
 
 
