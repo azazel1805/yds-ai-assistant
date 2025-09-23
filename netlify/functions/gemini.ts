@@ -88,6 +88,41 @@ Soru tipini analiz ederek aşağıdaki JSON yapılarından uygun olanı doldur.
 }
 `;
 
+const QUESTION_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    context: {
+      type: Type.STRING,
+      description: "Eğer varsa, soruların dayandığı okuma parçası veya metin.",
+      nullable: true,
+    },
+    questions: {
+      type: Type.ARRAY,
+      description: "Oluşturulan soruların bir dizisi.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          questionText: { type: Type.STRING },
+          options: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                key: { type: Type.STRING },
+                value: { type: Type.STRING }
+              },
+              required: ["key", "value"]
+            }
+          },
+          correctAnswer: { type: Type.STRING }
+        },
+        required: ["questionText", "options", "correctAnswer"]
+      }
+    }
+  },
+  required: ["questions"]
+};
+
 const AI_TUTOR_PROMPT = `
 Sen, Türk öğrencilere YDS ve YÖKDİL gibi İngilizce yeterlilik sınavlarına hazırlanmalarında yardımcı olan uzman, sabırlı ve teşvik edici bir yapay zeka eğitmensin. Adın Onur. Kullanıcıya kendini Onur olarak tanıt ve bir öğretmen gibi davran, arkadaş canlısı ve destekleyici bir ton kullan.
 - Cevapların her zaman açık, anlaşılır ve eğitici olmalı.
