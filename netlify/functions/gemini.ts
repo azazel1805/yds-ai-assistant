@@ -251,30 +251,36 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             contents: body.prompt,
         });
         break;
-            case 'generateSimilarQuiz': {
-        const { originalQuestion, analysis } = body;
-        const prompt = `
-          Bir YDS eğitmeni olarak, aşağıda verilen orijinal soruyu ve analizini incele.
-          
-          Orijinal Soru: "${originalQuestion}"
-          Analiz: Konu=${analysis.konu}, Soru Tipi=${analysis.soruTipi}, Zorluk=${analysis.zorlukSeviyesi}
 
-          Bu bilgilere dayanarak, aynı konuyu ve aynı gramer kuralını/beceriyi test eden, benzer zorluk seviyesinde 5 TANE YENİ ve ÖZGÜN çoktan seçmeli soru oluştur.
-          Cevabını, sağlanan JSON şemasına tam olarak uyan bir JSON objesi olarak döndür. 'context' alanını boş bırak.
+            
+            case 'generateSimilarQuiz': {
+        const { analysis, originalQuestion } = body;
+        const prompt = `
+          Aşağıda analizi yapılmış YDS sorusuna dayanarak 5 tane YENİ ve ÖZGÜN soru oluştur.
+          Yeni sorular ŞU KRİTERLERE KESİNLİKLE UYMALIDIR:
+          - Soru Tipi: "${analysis.soruTipi}"
+          - Konu: "${analysis.konu}"
+          - Zorluk Seviyesi: "${analysis.zorlukSeviyesi}"
+
+          Referans olarak verilen orijinal soru (BU SORUYU TEKRARLAMA!):
+          ---
+          ${originalQuestion}
+          ---
+          
+          Tamamen yeni ve benzersiz sorular üret.
         `;
         
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest', // MODEL_NAME sabitini kullandığınızdan emin olun
+            model: MODEL_NAME,
             contents: prompt,
             config: {
+                systemInstruction: "You are an expert YDS exam question creator. Your response MUST be a valid JSON object that strictly adheres to the provided schema. Generate exactly 5 questions.",
                 responseMimeType: 'application/json',
-                responseSchema: QUESTION_SCHEMA // Daha önce tanımladığımız esnek şemayı kullanıyoruz
+                responseSchema: QUESTION_SCHEMA
             }
         });
-        break;
-
-      
-     }
+        break; 
+      }
 
       case 'analyzeWrittenText':
         response = await ai.models.generateContent({
