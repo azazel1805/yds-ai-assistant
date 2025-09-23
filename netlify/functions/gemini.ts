@@ -383,24 +383,26 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         const prompt = `Act as a journalist. Write a compelling, single-paragraph news report in English about the latest news regarding "${body.topic}". The tone should be engaging and informative, like the opening of a news article, not a dry summary.`;
         
         const result = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest', // Bu özellik için Pro modelini kullanıyoruz.
+            model: 'gemini-1.5-pro-latest', 
             contents: prompt,
             config: {
-                tools: [{ googleSearch: {} }],
+                // DÜZELTME: 'googleSearch' yerine 'googleSearchRetrieval' kullanıldı.
+                tools: [{ googleSearchRetrieval: {} }],
             },
         });
 
-        const apiSources = result.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        const apiSources = result.candidates?.[0]?.groundingMetadata?.retrievalQueries || [];
         const sources = apiSources
-            .filter(source => source.web?.uri)
-            .map(source => ({
+            // DÜZELTME: groundingChunks yerine retrievalQueries'in yapısı farklı olabilir.
+            // Bu yüzden kaynakları işlerken daha güvenli bir yol izliyoruz.
+            .flatMap(query => query.sourceEntries || [])
+            .map(entry => ({
                 web: {
-                    uri: source.web!.uri!,
-                    title: source.web!.title || new URL(source.web!.uri!).hostname,
+                    uri: entry.uri!,
+                    title: entry.title || new URL(entry.uri!).hostname,
                 }
             }));
         
-        // Frontend'e hem metni hem de kaynakları tek bir JSON string'i olarak gönderiyoruz.
         const newsResult = {
             text: result.text,
             sources: sources
@@ -409,8 +411,9 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         return {
             statusCode: 200,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: JSON.stringify(newsResult) }), // Dikkat: İki kez stringify
+            body: JSON.stringify({ text: JSON.stringify(newsResult) }),
         };
+      
         // Bu case kendi response'unu döndürdüğü için break'e gerek yok.
       }
 
