@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
 import { getNewsSummary, generateNewsQuestions } from '../services/geminiService';
-import { GroundingChunk, NewsQuestion } from '../types';
+// DÜZELTME: types.ts dosyanızdaki 'NewsResult' ve 'NewsQuestion' tiplerini kullanmak daha doğru olur.
+// 'GroundingChunk' yerine 'NewsSource' gibi bir tip de oluşturabilirsiniz.
+import { NewsResult, NewsQuestion, NewsSource } from '../types';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
 
@@ -10,7 +12,7 @@ type ActiveView = 'quiz' | 'sources';
 const NewsReader: React.FC = () => {
     const [topic, setTopic] = useState<string | null>(null);
     const [paragraph, setParagraph] = useState<string>('');
-    const [sources, setSources] = useState<GroundingChunk[]>([]);
+    const [sources, setSources] = useState<NewsSource[]>([]); // Tip güncellendi
     const [questions, setQuestions] = useState<NewsQuestion[]>([]);
     const [userAnswers, setUserAnswers] = useState<{ [key: number]: string }>({});
     const [showResults, setShowResults] = useState(false);
@@ -33,27 +35,29 @@ const NewsReader: React.FC = () => {
         setActiveView('quiz');
 
         try {
-            // Step 1: Fetch the news paragraph
-            const result = await getNewsSummary(selectedTopic);
+            // Adım 1: Haber özetini ve kaynakları al
+            const result: NewsResult = await getNewsSummary(selectedTopic);
             setParagraph(result.text);
             setSources(result.sources);
             
-            // Step 2: Generate questions based on the paragraph
-            setIsLoading(false);
-            setIsLoadingQuestions(true);
+            setIsLoading(false); // Ana yükleyici bitti
+            setIsLoadingQuestions(true); // Sorular yüklenmeye başlıyor
             
-            const questionsText = await generateNewsQuestions(result.text);
-            const questionsJson = JSON.parse(questionsText);
+            // Adım 2: Gelen habere göre soruları üret
+            // DÜZELTME: 'generateNewsQuestions' zaten parse edilmiş bir obje döndürüyor.
+            // Bu yüzden gereksiz olan 'JSON.parse' satırı kaldırıldı.
+            const questionsJson = await generateNewsQuestions(result.text);
             
             if (questionsJson.questions && questionsJson.questions.length > 0) {
                 setQuestions(questionsJson.questions);
             } else {
-                throw new Error("Failed to generate valid questions from the news paragraph.");
+                // Bu hata, AI boş bir 'questions' dizisi döndürdüğünde gösterilir.
+                setError("Bu haber metni için anlama soruları oluşturulamadı.");
             }
 
         } catch (e: any) {
-            setError(e.message || 'An error occurred while fetching the news or generating questions.');
-            setIsLoading(false);
+            setError(e.message || 'Haberler alınırken veya sorular üretilirken bir hata oluştu.');
+            setIsLoading(false); // Hata durumunda ana yükleyiciyi de kapat
         } finally {
             setIsLoadingQuestions(false);
         }
