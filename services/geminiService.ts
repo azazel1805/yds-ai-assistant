@@ -1,6 +1,5 @@
 
-import { ChatMessage, HistoryItem } from '../types';
-import { AnalysisResult } from '../types'; // Bu importu dosyanın başına eklemeniz gerekebilir.
+import { ChatMessage, HistoryItem, AnalysisResult } from '../types';
 
 // Helper function to call our secure Netlify serverless function
 const callGeminiApi = async (action: string, payload: object): Promise<any> => {
@@ -42,11 +41,7 @@ export const sendTutorMessage = async (history: ChatMessage[], message: string):
   return result.text;
 };
 
-export const generateSimilarQuiz = async (originalQuestion: string, analysis: AnalysisResult): Promise<any> => {
-  // Parametrelerin doğru sırayla gönderildiğinden emin oluyoruz.
-  const result = await callApi('generateSimilarQuiz', { originalQuestion, analysis });
-  return result; // Servisteki akıllı parse'ı kullanıyoruz.
-};
+
 
 // Fix: Add generateQuestions function for QuestionGenerator
 export const generateQuestions = async (prompt: string): Promise<string> => {
@@ -99,4 +94,10 @@ export const getWritingTopic = async (): Promise<string> => {
 export const analyzeWrittenText = async (topic: string, text: string): Promise<string> => {
     const result = await callGeminiApi('analyzeWrittenText', { topic, text });
     return result.text;
+};
+
+export const generateSimilarQuiz = async (originalQuestion: string, analysis: AnalysisResult): Promise<any> => {
+  const result = await callApi('generateSimilarQuiz', { originalQuestion, analysis });
+  // Quiz soruları her zaman JSON formatında geleceği için parse ediyoruz.
+  return result.text;
 };
