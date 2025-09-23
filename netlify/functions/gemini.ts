@@ -216,6 +216,27 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             contents: body.prompt,
         });
         break;
+            case 'generateSimilarQuiz': {
+        const { originalQuestion, analysis } = body;
+        const prompt = `
+          Bir YDS eğitmeni olarak, aşağıda verilen orijinal soruyu ve analizini incele.
+          
+          Orijinal Soru: "${originalQuestion}"
+          Analiz: Konu=${analysis.konu}, Soru Tipi=${analysis.soruTipi}, Zorluk=${analysis.zorlukSeviyesi}
+
+          Bu bilgilere dayanarak, aynı konuyu ve aynı gramer kuralını/beceriyi test eden, benzer zorluk seviyesinde 5 TANE YENİ ve ÖZGÜN çoktan seçmeli soru oluştur.
+          Cevabını, sağlanan JSON şemasına tam olarak uyan bir JSON objesi olarak döndür. 'context' alanını boş bırak.
+        `;
+        
+        response = await ai.models.generateContent({
+            model: gemini-1.5-pro-latest, // MODEL_NAME sabitini kullandığınızdan emin olun
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: QUESTION_SCHEMA // Daha önce tanımladığımız esnek şemayı kullanıyoruz
+            }
+        });
+        break;
 
       // Fix: Add generateClozeTest handler
       case 'generateClozeTest':
