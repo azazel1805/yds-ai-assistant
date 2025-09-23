@@ -97,7 +97,7 @@ export const analyzeWrittenText = async (topic: string, text: string): Promise<s
 };
 
 export const generateSimilarQuiz = async (originalQuestion: string, analysis: AnalysisResult): Promise<any> => {
-  const result = await callApi('generateSimilarQuiz', { originalQuestion, analysis });
+  const result = await callGeminiApi('generateSimilarQuiz', { originalQuestion, analysis });
   // Quiz soruları her zaman JSON formatında geleceği için parse ediyoruz.
   return result.text;
 };
