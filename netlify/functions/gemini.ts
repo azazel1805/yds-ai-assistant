@@ -336,18 +336,21 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         });
         break; 
 
-                case 'deconstructPassage': {
+       }
+
+      case 'deconstructPassage': {
         const prompt = `Deconstruct the following English passage for a Turkish student preparing for the YDS exam.\n---\n${body.passage}\n---`;
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: MODEL_NAME,
             contents: prompt,
             config: {
-                systemInstruction: `You are an expert English language instructor... The entire output must be a valid JSON object...`,
+                systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to deconstruct an English passage sentence by sentence...`,
                 responseMimeType: 'application/json',
                 responseSchema: DECONSTRUCTION_SCHEMA,
             }
         });
         break;
+      }
       
       
       }
