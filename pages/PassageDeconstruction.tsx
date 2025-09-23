@@ -14,7 +14,7 @@ const PassageDeconstruction: React.FC = () => {
     const [selectedSentenceIndex, setSelectedSentenceIndex] = useState<number | null>(null);
     const { addWord, removeWord, isWordSaved } = useVocabulary();
 
-    const handleAnalyze = async () => {
+     const handleAnalyze = async () => {
         if (!passageText.trim()) {
             setError('Lütfen analiz edilecek bir metin girin.');
             return;
@@ -24,8 +24,8 @@ const PassageDeconstruction: React.FC = () => {
         setAnalysisResult(null);
         setSelectedSentenceIndex(null);
         try {
-            const resultText = await deconstructPassage(passageText);
-            const resultJson: PassageDeconstructionResult = JSON.parse(resultText);
+            // DÜZELTME: Servis fonksiyonu zaten parse ettiği için gereksiz JSON.parse kaldırıldı.
+            const resultJson: PassageDeconstructionResult = await deconstructPassage(passageText);
             setAnalysisResult(resultJson);
         } catch (e: any) {
             setError(e.message || 'Metin analizi sırasında bir hata oluştu.');
