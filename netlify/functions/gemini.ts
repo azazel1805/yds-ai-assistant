@@ -386,28 +386,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
   } 
 
 
-export const deconstructPassage = async (passage: string): Promise<string> => {
-    const prompt = `Deconstruct the following English passage for a Turkish student preparing for the YDS exam.
----
-${passage}
----
-`;
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
-            contents: prompt,
-            config: {
-                systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to deconstruct an English passage sentence by sentence. You MUST identify every sentence in the original passage and provide a corresponding analysis for it in the 'deconstructedSentences' array. Ensure all explanations are clear and helpful. The entire output must be a valid JSON object conforming to the provided schema. Do not add any text before or after the JSON.`,
-                responseMimeType: 'application/json',
-                responseSchema: DECONSTRUCTION_SCHEMA,
-            }
-        });
-        return response.text;
-    } catch (error) {
-        console.error("Error deconstructing passage:", error);
-        throw new Error("Failed to deconstruct the passage. Please check the console for details.");
-    }
-};
+
 
       
   catch (error: any) {
