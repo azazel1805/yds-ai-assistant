@@ -123,6 +123,55 @@ const QUESTION_SCHEMA = {
   required: ["questions"]
 };
 
+const DECONSTRUCTION_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    mainIdea: {
+      type: Type.STRING,
+      description: "The main idea of the entire passage in Turkish."
+    },
+    authorTone: {
+      type: Type.STRING,
+      description: "The author's tone (e.g., objective, critical, supportive) in Turkish."
+    },
+    deconstructedSentences: {
+      type: Type.ARRAY,
+      description: "An array containing the deconstruction of each sentence in the passage.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          originalSentence: {
+            type: Type.STRING,
+            description: "The original sentence from the text."
+          },
+          simplifiedSentence: {
+            type: Type.STRING,
+            description: "A simplified, rephrased version of the sentence in English."
+          },
+          grammarExplanation: {
+            type: Type.STRING,
+            description: "A brief explanation of the key grammar structure in the sentence, in Turkish."
+          },
+          vocabulary: {
+            type: Type.ARRAY,
+            description: "Key vocabulary words from this sentence.",
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                word: { type: Type.STRING, description: "The English word." },
+                meaning: { type: Type.STRING, description: "The Turkish meaning." }
+              },
+              required: ["word", "meaning"]
+            }
+          }
+        },
+        required: ["originalSentence", "simplifiedSentence", "grammarExplanation", "vocabulary"]
+      }
+    }
+  },
+  required: ["mainIdea", "authorTone", "deconstructedSentences"]
+};
+
 const AI_TUTOR_PROMPT = `
 Sen, Türk öğrencilere YDS ve YÖKDİL gibi İngilizce yeterlilik sınavlarına hazırlanmalarında yardımcı olan uzman, sabırlı ve teşvik edici bir yapay zeka eğitmensin. Adın Onur. Kullanıcıya kendini Onur olarak tanıt ve bir öğretmen gibi davran, arkadaş canlısı ve destekleyici bir ton kullan.
 - Cevapların her zaman açık, anlaşılır ve eğitici olmalı.
@@ -286,6 +335,20 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             }
         });
         break; 
+
+                case 'deconstructPassage': {
+        const prompt = `Deconstruct the following English passage for a Turkish student preparing for the YDS exam.\n---\n${body.passage}\n---`;
+        response = await ai.models.generateContent({
+            model: MODEL_NAME,
+            contents: prompt,
+            config: {
+                systemInstruction: `You are an expert English language instructor... The entire output must be a valid JSON object...`,
+                responseMimeType: 'application/json',
+                responseSchema: DECONSTRUCTION_SCHEMA,
+            }
+        });
+        break;
+      
       
       }
       case 'analyzeWrittenText':
@@ -318,54 +381,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     };
 
   } 
-const DECONSTRUCTION_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    mainIdea: {
-      type: Type.STRING,
-      description: "The main idea of the entire passage in Turkish."
-    },
-    authorTone: {
-      type: Type.STRING,
-      description: "The author's tone (e.g., objective, critical, supportive) in Turkish."
-    },
-    deconstructedSentences: {
-      type: Type.ARRAY,
-      description: "An array containing the deconstruction of each sentence in the passage.",
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          originalSentence: {
-            type: Type.STRING,
-            description: "The original sentence from the text."
-          },
-          simplifiedSentence: {
-            type: Type.STRING,
-            description: "A simplified, rephrased version of the sentence in English."
-          },
-          grammarExplanation: {
-            type: Type.STRING,
-            description: "A brief explanation of the key grammar structure in the sentence, in Turkish."
-          },
-          vocabulary: {
-            type: Type.ARRAY,
-            description: "Key vocabulary words from this sentence.",
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                word: { type: Type.STRING, description: "The English word." },
-                meaning: { type: Type.STRING, description: "The Turkish meaning." }
-              },
-              required: ["word", "meaning"]
-            }
-          }
-        },
-        required: ["originalSentence", "simplifiedSentence", "grammarExplanation", "vocabulary"]
-      }
-    }
-  },
-  required: ["mainIdea", "authorTone", "deconstructedSentences"]
-};
+
 
 export const deconstructPassage = async (passage: string): Promise<string> => {
     const prompt = `Deconstruct the following English passage for a Turkish student preparing for the YDS exam.
