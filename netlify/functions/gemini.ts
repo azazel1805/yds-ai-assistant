@@ -383,7 +383,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         const prompt = `Act as a journalist. Write a compelling, single-paragraph news report in English about the latest news regarding "${body.topic}". The tone should be engaging and informative, like the opening of a news article, not a dry summary.`;
         
         const result = await ai.models.generateContent({
-            model: PRO_MODEL_NAME, // Bu özellik için Pro modelini kullanıyoruz.
+            model: 'gemini-1.5-pro-latest', // Bu özellik için Pro modelini kullanıyoruz.
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
