@@ -254,27 +254,30 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
             
             case 'generateSimilarQuiz': {
-        const { analysis, originalQuestion } = body;
+        const { originalQuestion, analysis } = body;
+        
+        // DÜZELTME: Prompt daha esnek ve yönlendirici olacak şekilde güncellendi.
         const prompt = `
-          Aşağıda analizi yapılmış YDS sorusuna dayanarak 5 tane YENİ ve ÖZGÜN soru oluştur.
-          Yeni sorular ŞU KRİTERLERE KESİNLİKLE UYMALIDIR:
+          Bir YDS soru hazırlama uzmanısın. Görevin, bir sorunun analizine dayanarak 5 yeni çoktan seçmeli soru oluşturmak.
+
+          ANALİZ BİLGİLERİ:
           - Soru Tipi: "${analysis.soruTipi}"
           - Konu: "${analysis.konu}"
           - Zorluk Seviyesi: "${analysis.zorlukSeviyesi}"
-
-          Referans olarak verilen orijinal soru (BU SORUYU TEKRARLAMA!):
+          
+          REFERANS SORU (Bu soruyu veya seçeneklerini KESİNLİKLE tekrarlama):
           ---
           ${originalQuestion}
           ---
-          
-          Tamamen yeni ve benzersiz sorular üret.
+
+          Lütfen yukarıdaki analiz bilgilerini temel alarak, özellikle aynı beceriyi (soru tipi ve konu) test eden, benzer zorlukta 5 TANE tamamen yeni ve özgün soru oluştur.
         `;
         
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: MODEL_NAME,
             contents: prompt,
             config: {
-                systemInstruction: "You are an expert YDS exam question creator. Your response MUST be a valid JSON object that strictly adheres to the provided schema. Generate exactly 5 questions.",
+                systemInstruction: "Cevabın, sağlanan JSON şemasına tam olarak uyan geçerli bir JSON objesi olmalıdır. 'questions' dizisinin içinde 5 soru olduğundan emin ol.",
                 responseMimeType: 'application/json',
                 responseSchema: QUESTION_SCHEMA
             }
