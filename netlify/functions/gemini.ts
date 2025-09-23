@@ -353,7 +353,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       }
       
       
-      }
+      
       case 'analyzeWrittenText':
         response = await ai.models.generateContent({
             model: 'gemini-1.5-pro-latest',
