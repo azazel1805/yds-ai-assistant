@@ -145,3 +145,4 @@ export const analyzeWrittenText = async (topic: string, text: string): Promise<s
 export const deconstructPassage = async (passage: string): Promise<any> => {
   const result = await callApi('deconstructPassage', { passage });
   return parseJsonGracefully(result.text);
+  };
