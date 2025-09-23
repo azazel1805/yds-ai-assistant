@@ -6,15 +6,16 @@ import AITutor from './pages/AITutor';
 import Dictionary from './pages/Dictionary';
 import History from './pages/History';
 import { HistoryProvider } from './context/HistoryContext';
-import { AnalyzeIcon, DictionaryIcon, HistoryIcon, DashboardIcon, LogoutIcon, TutorIcon, ReadingIcon, WritingIcon, VocabularyIcon, MenuIcon, CloseIcon } from './components/icons/Icons';
+import { AnalyzeIcon, DictionaryIcon, HistoryIcon, DashboardIcon, LogoutIcon, TutorIcon, ReadingIcon, WritingIcon, VocabularyIcon, MenuIcon, CloseIcon, DeconstructIcon } from './components/icons/Icons';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import ReadingPractice from './pages/ReadingPractice';
 import WritingAssistant from './pages/WritingAssistant';
 import VocabularyTrainer from './pages/VocabularyTrainer';
+import PassageDeconstruction from './pages/PassageDeconstruction';
 
 
-type Tab = 'dashboard' | 'analyzer' | 'tutor' | 'reading' | 'writing' | 'dictionary' | 'vocabulary' | 'history';
+type Tab = 'dashboard' | 'analyzer' | 'tutor' | 'reading' | 'writing' | 'deconstruction' | 'dictionary' | 'vocabulary' | 'history';
 
 const App: React.FC = () => {
   const { user, logout } = useAuth();
@@ -31,6 +32,7 @@ const App: React.FC = () => {
     { id: 'tutor', label: 'AI Eğitmen', icon: <TutorIcon /> },
     { id: 'reading', label: 'Okuma Pratiği', icon: <ReadingIcon /> },
     { id: 'writing', label: 'Yazma Pratiği', icon: <WritingIcon /> },
+    { id: 'deconstruction', label: 'Pasaj Analizi', icon: <DeconstructIcon /> },
     { id: 'dictionary', label: 'Sözlük', icon: <DictionaryIcon /> },
     { id: 'vocabulary', label: 'Kelime Antrenörü', icon: <VocabularyIcon /> },
     { id: 'history', label: 'Geçmiş', icon: <HistoryIcon /> },
@@ -53,6 +55,8 @@ const App: React.FC = () => {
               return <ReadingPractice />;
           case 'writing':
               return <WritingAssistant />;
+          case 'deconstruction':
+              return <PassageDeconstruction />;
           case 'dictionary':
               return <Dictionary />;
           case 'vocabulary':
