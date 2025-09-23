@@ -148,3 +148,15 @@ export const deconstructPassage = async (passage: string): Promise<any> => {
   const result = await callGeminiApi('deconstructPassage', { passage });
   return parseJsonGracefully(result.text);
   };
+
+export const getNewsSummary = async (topic: string): Promise<NewsResult> => {
+  const result = await callApi('getNewsSummary', { topic });
+  // Backend'den gelen çift stringify edilmiş JSON'u parse ediyoruz.
+  return parseJsonGracefully(result.text); 
+};
+
+// YENİ: Haber metnine göre soru üretmek için servis fonksiyonu
+export const generateNewsQuestions = async (paragraph: string): Promise<any> => {
+  const result = await callApi('generateNewsQuestions', { paragraph });
+  return parseJsonGracefully(result.text);
+};
