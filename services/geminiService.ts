@@ -150,13 +150,13 @@ export const deconstructPassage = async (passage: string): Promise<any> => {
   };
 
 export const getNewsSummary = async (topic: string): Promise<NewsResult> => {
-  const result = await callApi('getNewsSummary', { topic });
+  const result = await callGeminiApi('getNewsSummary', { topic });
   // Backend'den gelen çift stringify edilmiş JSON'u parse ediyoruz.
   return parseJsonGracefully(result.text); 
 };
 
 // YENİ: Haber metnine göre soru üretmek için servis fonksiyonu
 export const generateNewsQuestions = async (paragraph: string): Promise<any> => {
-  const result = await callApi('generateNewsQuestions', { paragraph });
+  const result = await callGeminiApi('generateNewsQuestions', { paragraph });
   return parseJsonGracefully(result.text);
 };
