@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react'; 
 import { useHistory } from '../context/HistoryContext';
 import { getPersonalizedFeedback } from '../services/geminiService';
 import { PersonalizedFeedback } from '../types';
@@ -8,6 +8,8 @@ import ErrorMessage from '../components/ErrorMessage';
 import { useChallenge } from '../context/ChallengeContext';
 import { useVocabulary } from '../context/VocabularyContext';
 import { VocabularyIcon } from '../components/icons/Icons';
+// DÜZELTME 2: Sınav tarihlerini içeren veri dosyası import edildi.
+import { ydsExamDates } from '../data/examDates';
 
 
 interface ChartData {
