@@ -98,6 +98,19 @@ export interface WritingAnalysis {
   structureAndCohesion: string;
 }
 
+// Types for Passage Deconstruction
+export interface DeconstructedSentence {
+  originalSentence: string;
+  simplifiedSentence: string;
+  grammarExplanation: string;
+  vocabulary: KeyVocabulary[];
+}
+export interface PassageDeconstructionResult {
+  mainIdea: string;
+  authorTone: string;
+  deconstructedSentences: DeconstructedSentence[];
+}
+
 // Types for Daily Challenge
 // Removed 'listening' from ChallengeType as the feature is deleted.
 export type ChallengeType = 'analyze' | 'dictionary' | 'tutor' | 'reading' | 'writing';
