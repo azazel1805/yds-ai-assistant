@@ -44,7 +44,7 @@ export const sendTutorMessage = async (history: ChatMessage[], message: string):
 
 export const generateSimilarQuiz = async (originalQuestion: string, analysis: AnalysisResult): Promise<any> => {
   const result = await callApi('generateSimilarQuiz', { originalQuestion, analysis });
-  const parsedResult = parse result.text;
+  const parsedResult = parse(result.text);
   if (!parsedResult.questions || parsedResult.questions.length === 0) {
     throw new Error("Yapay zeka bu konu için yeni sorular üretemedi. Lütfen daha genel bir konuya sahip farklı bir soru deneyin.");
   }
