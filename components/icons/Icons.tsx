@@ -13,6 +13,7 @@ export const DeconstructIcon: React.FC = () => <span role="img" aria-label="Deco
 export const WritingIcon: React.FC = () => <span role="img" aria-label="Writing icon" className="text-xl">✍️</span>;
 export const SendIcon: React.FC = () => <span role="img" aria-label="Send icon" className="text-xl">➢</span>;
 export const VocabularyIcon: React.FC = () => <span role="img" aria-label="Vocabulary icon" className="text-xl">🗂️</span>;
+export const NewsIcon: React.FC = () => <span role="img" aria-label="News icon" className="text-xl">📰</span>;
 
 
 // text-2xl is equivalent to the previous h-6 w-6 size for the speaker icon
