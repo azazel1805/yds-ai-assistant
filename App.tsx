@@ -6,16 +6,17 @@ import AITutor from './pages/AITutor';
 import Dictionary from './pages/Dictionary';
 import History from './pages/History';
 import { HistoryProvider } from './context/HistoryContext';
-import { AnalyzeIcon, DictionaryIcon, HistoryIcon, DashboardIcon, LogoutIcon, TutorIcon, ReadingIcon, WritingIcon, VocabularyIcon, MenuIcon, CloseIcon, DeconstructIcon } from './components/icons/Icons';
+import { AnalyzeIcon, DictionaryIcon, HistoryIcon, DashboardIcon, LogoutIcon, TutorIcon, ReadingIcon, WritingIcon, VocabularyIcon, MenuIcon, CloseIcon, DeconstructIcon, NewsIcon } from './components/icons/Icons';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import ReadingPractice from './pages/ReadingPractice';
 import WritingAssistant from './pages/WritingAssistant';
 import VocabularyTrainer from './pages/VocabularyTrainer';
 import PassageDeconstruction from './pages/PassageDeconstruction';
+import NewsReader from './pages/NewsReader';
 
 
-type Tab = 'dashboard' | 'analyzer' | 'tutor' | 'reading' | 'writing' | 'deconstruction' | 'dictionary' | 'vocabulary' | 'history';
+type Tab = 'dashboard' | 'analyzer' | 'tutor' | 'reading' | 'writing' | 'deconstruction' | 'news' | 'dictionary' | 'vocabulary' | 'history';
 
 const App: React.FC = () => {
   const { user, logout } = useAuth();
@@ -33,6 +34,7 @@ const App: React.FC = () => {
     { id: 'reading', label: 'Okuma Pratiği', icon: <ReadingIcon /> },
     { id: 'writing', label: 'Yazma Pratiği', icon: <WritingIcon /> },
     { id: 'deconstruction', label: 'Metin Analizi', icon: <DeconstructIcon /> },
+    { id: 'news', label: 'Etkileşimli Gündem', icon: <NewsIcon /> },
     { id: 'dictionary', label: 'Sözlük', icon: <DictionaryIcon /> },
     { id: 'vocabulary', label: 'Kelime Antrenörü', icon: <VocabularyIcon /> },
     { id: 'history', label: 'Geçmiş', icon: <HistoryIcon /> },
@@ -57,6 +59,8 @@ const App: React.FC = () => {
               return <WritingAssistant />;
           case 'deconstruction':
               return <PassageDeconstruction />;
+          case 'news':
+              return <NewsReader />;
           case 'dictionary':
               return <Dictionary />;
           case 'vocabulary':
