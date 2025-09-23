@@ -274,7 +274,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         `;
         
         response = await ai.models.generateContent({
-            model: MODEL_NAME,
+            model: 'gemini-1.5-pro-latest',
             contents: prompt,
             config: {
                 systemInstruction: "Cevabın, sağlanan JSON şemasına tam olarak uyan geçerli bir JSON objesi olmalıdır. 'questions' dizisinin içinde 5 soru olduğundan emin ol.",
