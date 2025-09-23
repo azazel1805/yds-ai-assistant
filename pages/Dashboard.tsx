@@ -18,6 +18,59 @@ interface DashboardProps {
     onNavigate: (tab: 'vocabulary' | 'dictionary') => void;
 }
 
+const UpcomingExams = () => {
+  const upcomingExams = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
+
+    return ydsExamDates
+      .filter(exam => new Date(exam.examDate) >= today)
+      .sort((a, b) => new Date(a.examDate).getTime() - new Date(b.examDate).getTime())
+      .slice(0, 3);
+  }, []);
+
+  if (upcomingExams.length === 0) {
+    return null; // Don't render if no upcoming exams are found in the data
+  }
+
+  const calculateDaysLeft = (dateString: string) => {
+    const targetDate = new Date(dateString);
+    const today = new Date();
+    const diffTime = targetDate.getTime() - today.getTime();
+    if (diffTime < 0) return 0;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  return (
+    <div className="bg-bg-secondary p-6 rounded-lg shadow-lg">
+      <h3 className="text-lg font-bold text-text-primary mb-4">Yaklaşan YDS Sınavları</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {upcomingExams.map(exam => (
+          <div key={exam.name} className="bg-gray-700 p-4 rounded-lg border-l-4 border-brand-primary flex flex-col">
+            <h4 className="font-bold text-text-primary">{exam.name}</h4>
+            <div className="text-sm text-text-secondary mt-2 space-y-1 flex-grow">
+              <p><strong>Sınav Tarihi:</strong> {formatDate(exam.examDate)}</p>
+              <p><strong>Başvurular:</strong> {formatDate(exam.applicationStartDate)} - {formatDate(exam.applicationEndDate)}</p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-gray-600 text-center">
+              <p className="text-2xl font-bold text-brand-primary">{calculateDaysLeft(exam.examDate)}</p>
+              <p className="text-xs text-text-secondary uppercase tracking-wider">Gün Kaldı</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { history } = useHistory();
   const { challengeState } = useChallenge();
@@ -95,6 +148,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   if (history.length === 0) {
     return (
       <div className="max-w-4xl mx-auto space-y-8">
+        <UpcomingExams />
         <DailyChallengeDisplay />
         <div className="text-center py-10">
           <h2 className="text-2xl font-bold mb-2">Dashboard Boş</h2>
