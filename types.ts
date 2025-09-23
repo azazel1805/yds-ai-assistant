@@ -139,3 +139,25 @@ export interface VocabularyItem {
   word: string;
   meaning: string;
 }
+
+// Types for News Reader
+export interface GroundingChunk {
+  web: {
+      uri: string;
+      title: string;
+  };
+}
+
+export interface NewsResult {
+  text: string;
+  sources: GroundingChunk[];
+}
+
+export interface NewsQuestion {
+  question: string;
+  options: {
+    key: string;
+    value: string;
+  }[];
+  correctAnswer: string;
+}
