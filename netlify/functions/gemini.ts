@@ -229,7 +229,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         `;
         
         response = await ai.models.generateContent({
-            model: gemini-1.5-pro-latest, // MODEL_NAME sabitini kullandığınızdan emin olun
+            model: 'gemini-1.5-pro-latest', // MODEL_NAME sabitini kullandığınızdan emin olun
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',
