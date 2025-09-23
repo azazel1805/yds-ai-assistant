@@ -256,18 +256,25 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             case 'generateSimilarQuiz': {
         const { originalQuestion, analysis } = body;
         
-        // DÜZELTME: Prompt, analizi değil, doğrudan orijinal soruyu örnek olarak kullanıyor.
-        // Bu, yapay zekanın daha tutarlı ve başarılı sonuçlar üretmesini sağlar.
+        // --- DÜZELTME BAŞLANGICI ---
+        // Analizden elde edilen yapılandırılmış verileri (konu, kural, zorluk)
+        // kullanarak yapay zekaya çok daha net ve hedefe yönelik bir talimat veriyoruz.
+        // Bu, daha tutarlı ve doğru sonuçlar üretmesini sağlar.
         const prompt = `
-          Bir YDS soru hazırlama uzmanısın.
-          Aşağıda bir örnek YDS sorusu verilmiştir.
-          Bu soruya benzer, aynı konuyu, aynı gramer kuralını ve benzer zorluk seviyesini test eden 5 TANE tamamen YENİ ve ÖZGÜN soru oluştur.
+          Bir YDS soru hazırlama uzmanısın. Görevin, verilen bilgilere dayanarak 5 adet tamamen YENİ ve ÖZGÜN çoktan seçmeli soru oluşturmaktır.
 
-          ÖRNEK SORU (Bu soruyu veya seçeneklerini KESİNLİKLE tekrarlama):
+          **KONU:** ${analysis.konu}
+          **SORU TİPİ / KURAL:** ${analysis.soruTipi} - ${analysis.analiz.kural || 'Genel'}
+          **ZORLUK SEVİYESİ:** ${analysis.zorlukSeviyesi}
+
+          Lütfen bu kriterlere uygun 5 tane soru oluştur.
+
+          **KESİNLİKLE KULLANMA:** Aşağıdaki örnek soruyu veya seçeneklerini yanıtta tekrarlama. Bu sadece bir referanstır ve yeni sorularda kullanılmamalıdır.
           ---
           ${originalQuestion}
           ---
         `;
+        // --- DÜZELTME SONU ---
         
         response = await ai.models.generateContent({
             model: 'gemini-1.5-pro-latest',
@@ -279,6 +286,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             }
         });
         break; 
+      
       }
       case 'analyzeWrittenText':
         response = await ai.models.generateContent({
