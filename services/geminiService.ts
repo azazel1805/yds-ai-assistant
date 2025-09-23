@@ -1,6 +1,40 @@
+// src/services/geminiService.ts
 
-import { ChatMessage, HistoryItem } from '../types';
-import { AnalysisResult } from '../types'; // Bu importu dosyanın başına eklemeniz gerekebilir.
+import { ChatMessage, HistoryItem, AnalysisResult, ParsedQuestion } from '../types';
+
+// --- YENİ EKLENEN FONKSİYON ---
+/**
+ * Yapay zekadan gelen ve bazen bozuk olabilen JSON metnini güvenli bir şekilde ayrıştırır.
+ * Metnin başındaki/sonundaki markdown kod bloklarını (```json ... ```) temizler.
+ * @param jsonString Ayrıştırılacak metin.
+ * @returns Ayrıştırılmış JavaScript objesi veya hata durumunda boş bir obje {}.
+ */
+const parseJsonGracefully = (jsonString: string): any => {
+  if (typeof jsonString !== 'string') {
+    console.error("parseJsonGracefully received a non-string input:", jsonString);
+    return {};
+  }
+  
+  // Metnin başındaki ve sonundaki olası markdown kod bloklarını ve boşlukları temizle
+  let cleanString = jsonString.trim();
+  if (cleanString.startsWith('```json')) {
+    cleanString = cleanString.substring(7).trim();
+  }
+  if (cleanString.endsWith('```')) {
+    cleanString = cleanString.slice(0, -3).trim();
+  }
+
+  try {
+    // Temizlenmiş metni JSON olarak ayrıştırmayı dene
+    return JSON.parse(cleanString);
+  } catch (error) {
+    console.error("JSON parse hatası:", error);
+    console.error("Ayrıştırılamayan metin:", jsonString);
+    // Hata durumunda boş bir obje döndürerek uygulamanın çökmesini engelle
+    return {}; 
+  }
+};
+
 
 // Helper function to call our secure Netlify serverless function
 const callGeminiApi = async (action: string, payload: object): Promise<any> => {
@@ -16,7 +50,6 @@ const callGeminiApi = async (action: string, payload: object): Promise<any> => {
       throw new Error(errorBody.error || `Failed to call Gemini API action: ${action}`);
     }
     
-    // The serverless function will return the JSON string which was originally `response.text`
     return await response.json();
   } catch (error) {
     console.error(`Error in callGeminiApi for action ${action}:`, error);
@@ -42,9 +75,14 @@ export const sendTutorMessage = async (history: ChatMessage[], message: string):
   return result.text;
 };
 
-export const generateSimilarQuiz = async (originalQuestion: string, analysis: AnalysisResult): Promise<any> => {
+export const generateSimilarQuiz = async (originalQuestion: string, analysis: AnalysisResult): Promise<{ questions: ParsedQuestion[] }> => {
   const result = await callGeminiApi('generateSimilarQuiz', { originalQuestion, analysis });
+  
+  // --- DÜZELTME BURADA ---
+  // Artık tanımlı olan parseJsonGracefully fonksiyonunu kullanıyoruz.
   const parsedResult = parseJsonGracefully(result.text);
+
+  // parsedResult boş bir obje olsa bile bu kontrol güvenli bir şekilde çalışır.
   if (!parsedResult.questions || parsedResult.questions.length === 0) {
     throw new Error("Yapay zeka bu konu için yeni sorular üretemedi. Lütfen daha genel bir konuya sahip farklı bir soru deneyin.");
   }
@@ -71,22 +109,22 @@ export const generateListeningTask = async (difficulty: string): Promise<string>
 
 export const getReadingSummaryAndVocab = async (passage: string): Promise<any> => {
     const result = await callGeminiApi('getReadingSummaryAndVocab', { passage });
-    try {
-      return JSON.parse(result.text);
-    } catch (e) {
-      console.error("Failed to parse JSON from getReadingSummaryAndVocab:", result.text);
-      throw new Error("Invalid JSON response for summary/vocab.");
+    // parseJsonGracefully'yi burada da kullanmak daha güvenli olur.
+    const parsed = parseJsonGracefully(result.text);
+    if (!parsed.summary || !parsed.vocabulary) {
+        throw new Error("Invalid JSON response for summary/vocab.");
     }
+    return parsed;
 };
 
 export const getReadingQuestions = async (passage: string): Promise<any> => {
     const result = await callGeminiApi('getReadingQuestions', { passage });
-    try {
-      return JSON.parse(result.text);
-    } catch (e) {
-      console.error("Failed to parse JSON from getReadingQuestions:", result.text);
-      throw new Error("Invalid JSON response for questions.");
+    // parseJsonGracefully'yi burada da kullanmak daha güvenli olur.
+    const parsed = parseJsonGracefully(result.text);
+    if (!parsed.questions) {
+        throw new Error("Invalid JSON response for questions.");
     }
+    return parsed;
 };
 
 export const getPersonalizedFeedback = async (history: HistoryItem[]): Promise<string> => {
