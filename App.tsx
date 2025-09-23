@@ -32,7 +32,7 @@ const App: React.FC = () => {
     { id: 'tutor', label: 'AI Eğitmen', icon: <TutorIcon /> },
     { id: 'reading', label: 'Okuma Pratiği', icon: <ReadingIcon /> },
     { id: 'writing', label: 'Yazma Pratiği', icon: <WritingIcon /> },
-    { id: 'deconstruction', label: 'Pasaj Analizi', icon: <DeconstructIcon /> },
+    { id: 'deconstruction', label: 'Metin Analizi', icon: <DeconstructIcon /> },
     { id: 'dictionary', label: 'Sözlük', icon: <DictionaryIcon /> },
     { id: 'vocabulary', label: 'Kelime Antrenörü', icon: <VocabularyIcon /> },
     { id: 'history', label: 'Geçmiş', icon: <HistoryIcon /> },
