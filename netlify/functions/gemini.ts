@@ -317,7 +317,81 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       body: JSON.stringify({ text: response.text }),
     };
 
-  } catch (error: any) {
+  } 
+const DECONSTRUCTION_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    mainIdea: {
+      type: Type.STRING,
+      description: "The main idea of the entire passage in Turkish."
+    },
+    authorTone: {
+      type: Type.STRING,
+      description: "The author's tone (e.g., objective, critical, supportive) in Turkish."
+    },
+    deconstructedSentences: {
+      type: Type.ARRAY,
+      description: "An array containing the deconstruction of each sentence in the passage.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          originalSentence: {
+            type: Type.STRING,
+            description: "The original sentence from the text."
+          },
+          simplifiedSentence: {
+            type: Type.STRING,
+            description: "A simplified, rephrased version of the sentence in English."
+          },
+          grammarExplanation: {
+            type: Type.STRING,
+            description: "A brief explanation of the key grammar structure in the sentence, in Turkish."
+          },
+          vocabulary: {
+            type: Type.ARRAY,
+            description: "Key vocabulary words from this sentence.",
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                word: { type: Type.STRING, description: "The English word." },
+                meaning: { type: Type.STRING, description: "The Turkish meaning." }
+              },
+              required: ["word", "meaning"]
+            }
+          }
+        },
+        required: ["originalSentence", "simplifiedSentence", "grammarExplanation", "vocabulary"]
+      }
+    }
+  },
+  required: ["mainIdea", "authorTone", "deconstructedSentences"]
+};
+
+export const deconstructPassage = async (passage: string): Promise<string> => {
+    const prompt = `Deconstruct the following English passage for a Turkish student preparing for the YDS exam.
+---
+${passage}
+---
+`;
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to deconstruct an English passage sentence by sentence. You MUST identify every sentence in the original passage and provide a corresponding analysis for it in the 'deconstructedSentences' array. Ensure all explanations are clear and helpful. The entire output must be a valid JSON object conforming to the provided schema. Do not add any text before or after the JSON.`,
+                responseMimeType: 'application/json',
+                responseSchema: DECONSTRUCTION_SCHEMA,
+            }
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error deconstructing passage:", error);
+        throw new Error("Failed to deconstruct the passage. Please check the console for details.");
+    }
+};
+
+      
+  catch (error: any) {
     console.error("Error in Gemini function:", error);
     return {
       statusCode: 500,
