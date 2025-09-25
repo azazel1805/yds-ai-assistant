@@ -229,20 +229,20 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     switch (action) {
       case 'analyzeQuestion':
         response = await ai.models.generateContent({
-          model: 'gemini-1.5-pro-latest', contents: body.question,
+          model: 'gemini-2.0-flash', contents: body.question,
           config: { systemInstruction: YDS_ANALYSIS_PROMPT, responseMimeType: 'application/json' },
         });
         break;
 
       case 'getDictionaryEntry':
         const dictPrompt = `Provide a detailed dictionary entry for the word or phrase: "${body.word}"\n\nYou MUST include ALL of the following sections, clearly labeled EXACTLY as shown with markdown bolding. If you cannot find information for a section (like Antonyms), you MUST write "N/A" for that section instead of omitting it.\n\n**Pronunciation:** [Provide phonetic spelling or IPA here]\n**Definitions:** [List all common meanings]\n**Synonyms:** [Provide a comma-separated list, or "N/A"]\n**Antonyms:** [Provide a comma-separated list, or "N/A"]\n**Etymology:** [Provide a brief etymology, or "N/A"]\n**Example Sentences:** [List several example sentences]\n**${body.language} Meaning:** [Provide the meaning in ${body.language}]`;
-        response = await ai.models.generateContent({ model: 'gemini-1.5-pro-latest', contents: dictPrompt });
+        response = await ai.models.generateContent({ model: 'gemini-2.0-flash', contents: dictPrompt });
         break;
 
       case 'sendTutorMessage':
         const fullPrompt = body.history.map((m: any) => `${m.role}: ${m.text}`).join('\n') + `\nuser: ${body.message}`;
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.0-flash',
             contents: fullPrompt,
             config: { systemInstruction: AI_TUTOR_PROMPT }
         });
@@ -250,7 +250,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
       case 'getReadingSummaryAndVocab':
         response = await ai.models.generateContent({
-          model: 'gemini-1.5-pro-latest',
+          model: 'gemini-2.0-flash',
           contents: `Analyze the following English text. The user is a Turkish speaker preparing for the YDS exam.\nText:\n---\n${body.passage}\n---`,
           config: {
             // GÜNCELLENDİ: Talimat daha net hale getirildi.
@@ -281,7 +281,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       // YENİ CASE: Sadece anlama sorularını üretir (DAHA HIZLI)
       case 'getReadingQuestions':
         response = await ai.models.generateContent({
-          model: 'gemini-1.5-pro-latest',
+          model: 'gemini-2.0-flash',
           contents: `Based on the following English text, generate 3-4 multiple-choice comprehension questions suitable for a YDS exam candidate. The user is a Turkish speaker.\nText:\n---\n${body.passage}\n---`,
           config: {
             systemInstruction: `You are an expert English language instructor. Your task is to generate questions based on the provided text. The output MUST be a valid JSON object conforming to the schema.`,
@@ -298,7 +298,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
       case 'getPersonalizedFeedback':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.0-flash',
             contents: `Here is a summary of a student's question analysis history for the Turkish YDS exam. Each object represents one analyzed question:\n${JSON.stringify(body.history.map((item: any) => ({ soruTipi: item.analysis.soruTipi, zorlukSeviyesi: item.analysis.zorlukSeviyesi })), null, 2)}`,
             config: {
                 systemInstruction: `You are an expert YDS exam coach. Your task is to analyze the provided history of a student's work. Identify their top 1-3 weakest areas based on the question types they have analyzed. Provide a concise, encouraging recommendation for them to improve. Then, list their weak topics in a structured format. The entire output must be a valid JSON object conforming to the schema. Do not add any text before or after the JSON. The 'questionType' in the output MUST EXACTLY MATCH one of the keys from this list: ["Kelime Sorusu", "Dil Bilgisi Sorusu", "Cloze Test Sorusu", "Cümle Tamamlama Sorusu", "Çeviri Sorusu", "Paragraf Sorusu", "Diyalog Tamamlama Sorusu", "Restatement (Yeniden Yazma) Sorusu", "Paragraf Tamamlama Sorusu", "Akışı Bozan Cümle Sorusu"].`,
@@ -315,7 +315,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
       case 'getWritingTopic':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.0-flash',
             contents: 'Generate a single, random English essay topic suitable for a YDS exam.',
         });
         break;
@@ -323,7 +323,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       // Fix: Add generateQuestions handler
       case 'generateQuestions':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.0-flash',
             contents: body.prompt,
         });
         break;
@@ -353,7 +353,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         // --- DÜZELTME SONU ---
         
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.0-flash',
             contents: prompt,
             config: {
                 systemInstruction: "Cevabın, sağlanan JSON şemasına tam olarak uyan geçerli bir JSON objesi olmalıdır. 'questions' dizisinin içinde 5 soru olduğundan emin ol.",
@@ -368,7 +368,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       case 'deconstructPassage': {
         const prompt = `Deconstruct the following English passage for a Turkish student preparing for the YDS exam.\n---\n${body.passage}\n---`;
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.0-flash',
             contents: prompt,
             config: {
                 systemInstruction: `You are an expert English language instructor for Turkish students. Your task is to deconstruct an English passage sentence by sentence...`,
@@ -383,7 +383,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         const prompt = `Act as a journalist. Write a compelling, single-paragraph news report in English about the latest news regarding "${body.topic}". The tone should be engaging and informative, like the opening of a news article, not a dry summary.`;
         
         const result = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest', 
+            model: 'gemini-2.0-flash', 
             contents: prompt,
             config: {
                 // DÜZELTME: 'googleSearch' yerine 'googleSearchRetrieval' kullanıldı.
@@ -422,7 +422,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         const prompt = `Based on the following news paragraph, generate exactly 4 comprehensive multiple-choice questions to test understanding.\n\nParagraph:\n---\n${body.paragraph}\n---`;
         
         response = await ai.models.generateContent({
-          model: 'gemini-1.5-pro-latest',
+          model: 'gemini-2.0-flash',
           contents: prompt,
           config: {
             systemInstruction: `You are an expert in creating educational content. Your task is to generate exactly 4 multiple-choice questions based on the provided text. The entire output must be a valid JSON object conforming to the provided schema.`,
@@ -437,7 +437,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       
       case 'analyzeWrittenText':
         response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.0-flash',
             contents: `Essay Topic: "${body.topic}"\nStudent's Essay:\n---\n${body.text}\n---`,
             config: {
                 systemInstruction: `You are an expert English exam evaluator for Turkish students preparing for the YDS. Analyze the student's essay based on the provided topic. Provide constructive feedback in a structured JSON format. The feedback should be clear, encouraging, and helpful for improvement. Do not add any text or markdown before or after the JSON object.`,
